@@ -64,7 +64,6 @@ def dichotomy_method(f, a0, b0, eps):
     return (a + b) / 2.0, algo_iters
 
 
-# TODO Метод золотого сечения - пока в разработке
 @minimizer
 def golden_ratio_method(f, a0, b0, eps):
     """Метод золотого сечения"""
@@ -72,7 +71,7 @@ def golden_ratio_method(f, a0, b0, eps):
     b = b0
     interval_length = abs(b - a)
 
-    phi = (math.sqrt(5) - 1) / 2
+    phi = (3 - math.sqrt(5)) / 2
     x1 = a + phi * interval_length
     x2 = b - phi * interval_length
     y1 = f(x1)
@@ -84,13 +83,13 @@ def golden_ratio_method(f, a0, b0, eps):
         if y1 >= y2:
             a = x1
             x1 = x2
-            x2 = a + phi * (b - a)
+            x2 = b - phi * (b - a)
             y1 = y2
             y2 = f(x2)
         else:
             b = x2
             x2 = x1
-            x1 = b - phi * (b - a)
+            x1 = a + phi * (b - a)
             y2 = y1
             y1 = f(x1)
         interval_length = b - a

@@ -1,4 +1,4 @@
-from math import sin, log1p
+from math import sin, log
 
 import math
 
@@ -14,7 +14,7 @@ def minimizer(fn):
 
 def f(x):
     """Исходная функция"""
-    return math.sin(x) - math.log1p(x) ** 2 - 1
+    return math.sin(x) - math.log(x ** 2) - 1
 
 
 @minimizer

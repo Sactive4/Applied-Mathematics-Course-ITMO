@@ -9,6 +9,7 @@ minimizers = []
 def minimizer(fn):
     """Декоратор для регистрации алгоритмов"""
     minimizers.append(fn)
+    return fn
 
 
 def f(x):

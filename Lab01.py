@@ -32,7 +32,7 @@ class CallCounter:
 
 def f(x):
     """Исходная функция"""
-    return math.sin(x) - math.log(x ** 2) - 1
+    return sin(x) - log(x ** 2) - 1
 
 
 @minimizer
@@ -99,13 +99,36 @@ def golden_ratio_method(f, a0, b0, eps):
 
 
 if __name__ == "__main__":
-    a0 = 0.1
-    b0 = 7.0
-    eps = 0.01
+    import inspect
+    import sys
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser(
+        description="Найти локальный минимум функции несколькими способами",
+    )
+    parser.add_argument("-l", type=float, default=0.1, help="Левая граница интервала")
+    parser.add_argument("-r", type=float, default=7.0, help="Правая граница интервала")
+    parser.add_argument("-e", "--eps", type=float, default=0.001, help="Точность")
+
+    args = parser.parse_args()
+
+    if not args.l < args.r:
+        print("Левая граница должна быть меньше правой", file=sys.stderr)
+        sys.exit(1)
+
+    print(
+        "Исследуемая функция:",
+        inspect.getsource(f).split("\n")[2].lstrip()[7:],
+    )
+
+    print(f"Исследуемый интервал: ({args.l}, {args.r})")
+    print(f"Точность: {args.eps}")
+
+    print()
 
     for algo in minimizers:
         fn_counted = CallCounter(f)
-        res, iter_count = algo(fn_counted, a0, b0, eps)
+        res, iter_count = algo(fn_counted, args.l, args.r, args.eps)
         print(
             f"Метод: {algo.__name__}",
             f"Результат: {res:.3f}",

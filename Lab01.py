@@ -2,12 +2,23 @@ from math import sin, log1p
 
 import math
 
-# ===== Исходная функция =====
+
+minimizers = []
+
+
+def minimizer(fn):
+    """Декоратор для регистрации алгоритмов"""
+    minimizers.append(fn)
+
+
 def f(x):
+    """Исходная функция"""
     return math.sin(x) - math.log1p(x) ** 2 - 1
 
-# ===== Метод дихотомии =====
+
+@minimizer
 def dichotomy_method(a0, b0, eps):
+    """Метод дихотомии"""
     a = a0
     b = b0
     delta = eps / 2
@@ -35,8 +46,9 @@ def dichotomy_method(a0, b0, eps):
 
 
 # TODO Метод золотого сечения - пока в разработке
-# ===== Метод золотого сечения =====
+@minimizer
 def golden_ratio_method(a0, b0, eps):
+    """Метод золотого сечения"""
     a = a0
     b = b0
     interval_length = abs(b - a)
@@ -69,24 +81,19 @@ def golden_ratio_method(a0, b0, eps):
         algo_iters += 1
     return (a + b) / 2.0, func_calls, algo_iters
 
-a0 = 0.1
-b0 = 7.0
-eps = 0.01
 
-x1, f1, alg1 = dichotomy_method(a0, b0, eps)
-print(x1)
+if __name__ == "__main__":
+    a0 = 0.1
+    b0 = 7.0
+    eps = 0.01
 
-x2, f2, alg2 = golden_ratio_method(a0, b0, eps)
-print(x2)
-
-
-
-
-
-
-
-
-
-
-
-
+    for minimizer in minimizers:
+        res, call_count, iter_count = minimizer(a0, b0, eps)
+        print(
+            f"Метод: {minimizer.__name__}",
+            f"Результат: {res:.3f}",
+            f"Вызовов функции: {call_count}",
+            f"Итераций: {iter_count}",
+            sep="\n",
+            end="\n\n",
+        )

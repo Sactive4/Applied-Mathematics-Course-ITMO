@@ -1,7 +1,4 @@
-from math import sin, log
-
-import math
-
+from math import sin, log, sqrt
 
 minimizers = []
 
@@ -71,7 +68,7 @@ def golden_ratio_method(f, a0, b0, eps):
     b = b0
     interval_length = abs(b - a)
 
-    phi = (3 - math.sqrt(5)) / 2
+    phi = (3 - sqrt(5)) / 2
     x1 = a + phi * interval_length
     x2 = b - phi * interval_length
     y1 = f(x1)

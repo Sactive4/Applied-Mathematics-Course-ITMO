@@ -1,3 +1,4 @@
+from bisect import bisect_left
 from math import sqrt
 
 
@@ -70,3 +71,31 @@ def golden_ratio_method(f, a0, b0, eps):
         interval_length = b - a
         algo_iters += 1
     return (a + b) / 2.0, algo_iters
+
+
+class Fibonacci:
+    """Класс для работы с числами Фибоначчи"""
+
+    def __init__(self):
+        self._cache = [1, 1]
+
+    def _append_next(self):
+        next_fib = sum(self._cache[-2:])
+        self._cache.append(next_fib)
+
+    def fib(self, n):
+        """Найти n-ое число Фибоначчи, n >= 0"""
+
+        while n >= len(self._cache):
+            self._append_next()
+        return self._cache[n]
+
+    def n(self, fib):
+        """Найти номер числа Фибоначчи, ближайшего сверху к fib"""
+
+        if fib <= self._cache[-1]:
+            return bisect_left(self._cache, fib)
+
+        while fib > self._cache[-1]:
+            self._append_next()
+        return len(self._cache) - 1

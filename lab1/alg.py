@@ -99,3 +99,127 @@ class Fibonacci:
         while fib > self._cache[-1]:
             self._append_next()
         return len(self._cache) - 1
+
+
+# todo метод парабол работает корректно только при шаге 0.01
+# нужно убедиться, что это точно не баг, а фича метода
+PARABOLA_STEP = 0.01
+
+# todo протестировать
+@minimizer
+def parabola_method(f, a0, b0, eps):
+    """Метод парабол"""
+
+    global PARABOLA_STEP
+
+    x2 = a0
+    step = PARABOLA_STEP * a0
+    intervals = []
+
+    while True:
+
+        x1 = x2 - step
+        x3 = x2 + step
+
+        f1 = f(x1)
+        f2 = f(x2)
+        f3 = f(x3)
+
+        x_min = x2 - 0.5*((x2-x1)**2 * (f2-f3) - (x2-x3)**2 * (f2-f1))/((x2-x1)*(f2-f3) - (x2-x3)*(f2-f1))
+        intervals.append((x1, x3))
+
+        if abs(x_min - x2) < eps:
+            x2 = x_min
+            break
+
+        x2 = x_min
+
+    return intervals
+
+
+def sign(x):
+    if x > 0:
+        return 1
+    elif x < 0:
+        return -1
+    else:
+        return 0
+
+# todo протестировать
+@minimizer
+def brent1_method(f, a0, b0, eps):
+    """Комбинированный метод Брента"""
+
+    intervals = []
+
+    a = a0
+    c = b0
+
+    K = (3 - sqrt(5)) / 2
+    x = w = v = (a + c) / 2
+    f_x = f_w = f_v = f(x)
+    d = e = c - a
+
+    while (d > eps):
+        g = e
+        e = d
+
+        u = 0
+        if (x != w) and (x != v) and (w != v) and (f_x != f_w) and (f_x != f_v) and (f_w != f_v):
+
+            x1 = v
+            x2 = x
+            x3 = w
+
+            f1 = f_v
+            f2 = f_x
+            f3 = f_w
+
+            u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
+                        (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1))
+
+        if (a + eps <= u) and (u <= c - eps) and (abs(u - x) < 0.5 * g):
+            intervals.append((x, u))
+            d = abs(u-x)
+        else:
+            if x < 0.5 * (c + a):
+                u = x + K * (c - x)
+                d = c - x
+                intervals.append((x, c))
+            else:
+                u = x - K * (x - a)
+                d = x - a
+                intervals.append((a, x))
+
+            if abs(u - x) < eps:
+                u = x + sign(u - x) * eps
+
+            f_u = f(u)
+            if f_u <= f_x:
+                if u >= x:
+                    a = x
+                else:
+                    c = x
+                v = w
+                w = x
+                x = u
+                f_v = f_w
+                f_w = f_x
+                f_x = f_u
+            else:
+                if u >= x:
+                    c = u
+                else:
+                    a = u
+                if (f_u <= f_w) or (w == x):
+                    v = w
+                    w = u
+                    f_v = f_w
+                    f_w = f_u
+                elif (f_u <= f_v) or (v == x) or (v == w):
+                    v = u
+                    f_v = f_u
+
+    return intervals
+
+

@@ -1,7 +1,9 @@
 import inspect
 import sys
-from argparse import ArgumentParser
+from argparse import ArgumentParser, BooleanOptionalAction
 from math import log, sin
+
+import matplotlib.pyplot as plt
 
 from alg import minimizers
 
@@ -35,6 +37,12 @@ parser = ArgumentParser(
 parser.add_argument("-l", type=float, default=0.1, help="Левая граница интервала")
 parser.add_argument("-r", type=float, default=7.0, help="Правая граница интервала")
 parser.add_argument("-e", "--eps", type=float, default=0.001, help="Точность")
+parser.add_argument(
+    "--plot",
+    default=False,
+    action=BooleanOptionalAction,
+    help="Нарисовать графики длин интервалов",
+)
 
 args = parser.parse_args()
 
@@ -65,3 +73,15 @@ for algo in minimizers:
         sep="\n",
         end="\n\n",
     )
+    if args.plot:
+        lengths = [abs(b - a) for a, b in intervals]
+        plt.plot(range(iter_count), lengths, ".-", label=algo.__name__)
+        plt.plot()
+
+if args.plot:
+    plt.legend()
+    plt.gca().xaxis.get_major_locator().set_params(integer=True)
+    plt.title("Изменение длин интервалов в процессе работы алгоритмов")
+    plt.xlabel("Номер итерации")
+    plt.ylabel("Длина интервала")
+    plt.show()

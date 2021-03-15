@@ -54,7 +54,9 @@ print()
 
 for algo in minimizers:
     fn_counted = CallCounter(f)
-    res, iter_count = algo(fn_counted, args.l, args.r, args.eps)
+    intervals = algo(fn_counted, args.l, args.r, args.eps)
+    res = sum(intervals[-1]) / 2.0
+    iter_count = len(intervals)
     print(
         f"Метод: {algo.__name__}",
         f"Результат: {res:.3f}",

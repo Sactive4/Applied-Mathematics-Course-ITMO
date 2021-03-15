@@ -19,7 +19,7 @@ def dichotomy_method(f, a0, b0, eps):
     delta = eps / 2
 
     interval_length = abs(b - a)
-    algo_iters = 0
+    intervals = [(a, b)]
 
     while interval_length > eps:
         x1 = (a + b - delta) / 2
@@ -35,9 +35,9 @@ def dichotomy_method(f, a0, b0, eps):
             b = x2
 
         interval_length = abs(b - a)
-        algo_iters += 1
+        intervals.append((a, b))
 
-    return (a + b) / 2.0, algo_iters
+    return intervals
 
 
 @minimizer
@@ -53,7 +53,7 @@ def golden_ratio_method(f, a0, b0, eps):
     y1 = f(x1)
     y2 = f(x2)
 
-    algo_iters = 0
+    intervals = [(a, b)]
 
     while interval_length > eps:
         if y1 >= y2:
@@ -69,8 +69,8 @@ def golden_ratio_method(f, a0, b0, eps):
             y2 = y1
             y1 = f(x1)
         interval_length = b - a
-        algo_iters += 1
-    return (a + b) / 2.0, algo_iters
+        intervals.append((a, b))
+    return intervals
 
 
 class Fibonacci:

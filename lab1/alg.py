@@ -101,72 +101,43 @@ class Fibonacci:
         return len(self._cache) - 1
 
 
-@minimizer
-def fibonacci_method(f, a, b, eps):
-    """Метод Фибоначчи"""
-
-    fib = Fibonacci()
-
-    fib_iters = (b - a) / eps
-    n = fib.n(fib_iters) - 2
-
-    x1 = a + fib.fib(n) / fib.fib(n + 2) * (b - a)
-    x2 = a + fib.fib(n + 1) / fib.fib(n + 2) * (b - a)
-    y1 = f(x1)
-    y2 = f(x2)
-
-    intervals = [(a, b)]
-
-    for k in range(2, n + 1):
-        if y1 > y2:
-            a = x1
-            x1, y1 = x2, y2
-            x2 = a + fib.fib(n - k + 2) / fib.fib(n - k + 3) * (b - a)
-            y2 = f(x2)
-        else:
-            b = x2
-            x2, y2 = x1, y1
-            x1 = a + fib.fib(n - k + 1) / fib.fib(n - k + 3) * (b - a)
-            y1 = f(x1)
-        intervals.append((a, b))
-
-    return intervals
-
-
-# todo метод парабол работает корректно только при шаге 0.01
-# нужно убедиться, что это точно не баг, а фича метода
-PARABOLA_STEP = 0.01
-
 # todo протестировать
 @minimizer
 def parabola_method(f, a0, b0, eps):
     """Метод парабол"""
 
-    global PARABOLA_STEP
-
-    x2 = a0
-    step = PARABOLA_STEP * a0
     intervals = []
+    intervals.append((a0, b0))
 
-    while True:
+    step = 0.1
+    x1 = a0
+    x2 = (a0 + b0) / 2
+    x3 = b0
 
-        x1 = x2 - step
-        x3 = x2 + step
+    while abs(x3 - x1) > eps:
+
+        x2 = (x1 + x3) / 2
 
         f1 = f(x1)
         f2 = f(x2)
         f3 = f(x3)
 
-        x_min = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
-            (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
-        )
-        intervals.append((x1, x3))
-
-        if abs(x_min - x2) < eps:
-            x2 = x_min
+        while (f2 >= f1) or (f2 >= f3):
+            # todo не сходится, надо что-то сделать, а не бросать алгоритм в этом месте
             break
+            x2 += step
+            f2 = f(x2)
 
-        x2 = x_min
+        u = x2 - 0.5*((x2-x1)**2 * (f2-f3) - (x2-x3)**2 * (f2-f1))/((x2-x1)*(f2-f3) - (x2-x3)*(f2-f1))
+
+        if u < x2:
+            intervals.append((u, x2))
+            x1 = u
+            x3 = x2
+        else:
+            intervals.append((x2, u))
+            x1 = x2
+            x3 = u
 
     return intervals
 
@@ -180,12 +151,12 @@ def sign(x):
         return 0
 
 
-# todo протестировать
 @minimizer
-def brent1_method(f, a0, b0, eps):
+def brent_method(f, a0, b0, eps):
     """Комбинированный метод Брента"""
 
     intervals = []
+    intervals.append((a0, b0))
 
     a = a0
     c = b0
@@ -195,19 +166,16 @@ def brent1_method(f, a0, b0, eps):
     f_x = f_w = f_v = f(x)
     d = e = c - a
 
-    while d > eps:
+    while (d > eps):
         g = e
         e = d
 
+        # todo не все итерации добавляются, а только уникальные. норм?
+        if (intervals[-1] != (a, c)):
+            intervals.append((a, c))
+
         u = 0
-        if (
-            (x != w)
-            and (x != v)
-            and (w != v)
-            and (f_x != f_w)
-            and (f_x != f_v)
-            and (f_w != f_v)
-        ):
+        if (x != w) and (x != v) and (w != v) and (f_x != f_w) and (f_x != f_v) and (f_w != f_v):
 
             x1 = v
             x2 = x
@@ -218,21 +186,18 @@ def brent1_method(f, a0, b0, eps):
             f3 = f_w
 
             u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
-                (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
-            )
+                        (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1))
 
         if (a + eps <= u) and (u <= c - eps) and (abs(u - x) < 0.5 * g):
-            intervals.append((x, u))
-            d = abs(u - x)
+            d = abs(u-x)
         else:
+            # todo опечатка в коде? я поставил +, а не -, как дано
             if x < 0.5 * (c + a):
                 u = x + K * (c - x)
                 d = c - x
-                intervals.append((x, c))
             else:
                 u = x - K * (x - a)
                 d = x - a
-                intervals.append((a, x))
 
             if abs(u - x) < eps:
                 u = x + sign(u - x) * eps
@@ -264,3 +229,5 @@ def brent1_method(f, a0, b0, eps):
                     f_v = f_u
 
     return intervals
+
+

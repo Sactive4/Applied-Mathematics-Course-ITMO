@@ -125,7 +125,9 @@ def parabola_method(f, a0, b0, eps):
         f2 = f(x2)
         f3 = f(x3)
 
-        x_min = x2 - 0.5*((x2-x1)**2 * (f2-f3) - (x2-x3)**2 * (f2-f1))/((x2-x1)*(f2-f3) - (x2-x3)*(f2-f1))
+        x_min = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
+            (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
+        )
         intervals.append((x1, x3))
 
         if abs(x_min - x2) < eps:
@@ -145,6 +147,7 @@ def sign(x):
     else:
         return 0
 
+
 # todo протестировать
 @minimizer
 def brent1_method(f, a0, b0, eps):
@@ -160,12 +163,19 @@ def brent1_method(f, a0, b0, eps):
     f_x = f_w = f_v = f(x)
     d = e = c - a
 
-    while (d > eps):
+    while d > eps:
         g = e
         e = d
 
         u = 0
-        if (x != w) and (x != v) and (w != v) and (f_x != f_w) and (f_x != f_v) and (f_w != f_v):
+        if (
+            (x != w)
+            and (x != v)
+            and (w != v)
+            and (f_x != f_w)
+            and (f_x != f_v)
+            and (f_w != f_v)
+        ):
 
             x1 = v
             x2 = x
@@ -176,11 +186,12 @@ def brent1_method(f, a0, b0, eps):
             f3 = f_w
 
             u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
-                        (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1))
+                (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
+            )
 
         if (a + eps <= u) and (u <= c - eps) and (abs(u - x) < 0.5 * g):
             intervals.append((x, u))
-            d = abs(u-x)
+            d = abs(u - x)
         else:
             if x < 0.5 * (c + a):
                 u = x + K * (c - x)
@@ -221,5 +232,3 @@ def brent1_method(f, a0, b0, eps):
                     f_v = f_u
 
     return intervals
-
-

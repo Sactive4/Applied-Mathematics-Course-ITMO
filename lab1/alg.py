@@ -133,7 +133,6 @@ def fibonacci_method(f, a, b, eps):
     return intervals
 
 
-# todo протестировать
 @minimizer
 def parabola_method(f, a0, b0, eps):
     """Метод парабол"""
@@ -141,35 +140,35 @@ def parabola_method(f, a0, b0, eps):
     intervals = []
     intervals.append((a0, b0))
 
-    step = 0.1
     x1 = a0
-    x2 = (a0 + b0) / 2
     x3 = b0
+    f1 = f(x1)
+    f3 = f(x3)
 
     while abs(x3 - x1) > eps:
-
         x2 = (x1 + x3) / 2
-
-        f1 = f(x1)
         f2 = f(x2)
-        f3 = f(x3)
 
-        while (f2 >= f1) or (f2 >= f3):
-            # todo не сходится, надо что-то сделать, а не бросать алгоритм в этом месте
-            break
-            x2 += step
-            f2 = f(x2)
+        u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
+            (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
+        )
+        fu = f(u)
 
-        u = x2 - 0.5*((x2-x1)**2 * (f2-f3) - (x2-x3)**2 * (f2-f1))/((x2-x1)*(f2-f3) - (x2-x3)*(f2-f1))
-
-        if u < x2:
-            intervals.append((u, x2))
-            x1 = u
-            x3 = x2
+        if x2 < u:
+            left_x, left_f = x2, f2
+            right_x, right_f = u, fu
         else:
-            intervals.append((x2, u))
-            x1 = x2
-            x3 = u
+            left_x, left_f = u, fu
+            right_x, right_f = x2, f2
+
+        if left_f < right_f:
+            x3 = right_x
+            f3 = right_f
+        else:
+            x1 = left_x
+            f1 = left_f
+
+        intervals.append((x1, x3))
 
     return intervals
 
@@ -198,22 +197,22 @@ def brent_method(f, a0, b0, eps):
     f_x = f_w = f_v = f(x)
     d = e = c - a
 
-    while (d > eps):
+    while d > eps:
         g = e
         e = d
 
         # todo не все итерации добавляются, а только уникальные. норм?
-        if (intervals[-1] != (a, c)):
+        if intervals[-1] != (a, c):
             intervals.append((a, c))
 
         u = 0
         if (
-                (x != w)
-                and (x != v)
-                and (w != v)
-                and (f_x != f_w)
-                and (f_x != f_v)
-                and (f_w != f_v)
+            (x != w)
+            and (x != v)
+            and (w != v)
+            and (f_x != f_w)
+            and (f_x != f_v)
+            and (f_w != f_v)
         ):
             x1 = v
             x2 = x
@@ -224,11 +223,11 @@ def brent_method(f, a0, b0, eps):
             f3 = f_w
 
             u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
-                    (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
+                (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
             )
 
         if (a + eps <= u) and (u <= c - eps) and (abs(u - x) < 0.5 * g):
-            d = abs(u-x)
+            d = abs(u - x)
         else:
             # todo опечатка в коде? я поставил +, а не -, как дано
             if x < 0.5 * (c + a):
@@ -268,5 +267,3 @@ def brent_method(f, a0, b0, eps):
                     f_v = f_u
 
     return intervals
-
-

@@ -101,6 +101,38 @@ class Fibonacci:
         return len(self._cache) - 1
 
 
+@minimizer
+def fibonacci_method(f, a, b, eps):
+    """Метод Фибоначчи"""
+
+    fib = Fibonacci()
+
+    fib_iters = (b - a) / eps
+    n = fib.n(fib_iters) - 2
+
+    x1 = a + fib.fib(n) / fib.fib(n + 2) * (b - a)
+    x2 = a + fib.fib(n + 1) / fib.fib(n + 2) * (b - a)
+    y1 = f(x1)
+    y2 = f(x2)
+
+    intervals = [(a, b)]
+
+    for k in range(2, n + 1):
+        if y1 > y2:
+            a = x1
+            x1, y1 = x2, y2
+            x2 = a + fib.fib(n - k + 2) / fib.fib(n - k + 3) * (b - a)
+            y2 = f(x2)
+        else:
+            b = x2
+            x2, y2 = x1, y1
+            x1 = a + fib.fib(n - k + 1) / fib.fib(n - k + 3) * (b - a)
+            y1 = f(x1)
+        intervals.append((a, b))
+
+    return intervals
+
+
 # todo метод парабол работает корректно только при шаге 0.01
 # нужно убедиться, что это точно не баг, а фича метода
 PARABOLA_STEP = 0.01

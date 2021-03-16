@@ -101,6 +101,38 @@ class Fibonacci:
         return len(self._cache) - 1
 
 
+@minimizer
+def fibonacci_method(f, a, b, eps):
+    """Метод Фибоначчи"""
+
+    fib = Fibonacci()
+
+    fib_iters = (b - a) / eps
+    n = fib.n(fib_iters) - 2
+
+    x1 = a + fib.fib(n) / fib.fib(n + 2) * (b - a)
+    x2 = a + fib.fib(n + 1) / fib.fib(n + 2) * (b - a)
+    y1 = f(x1)
+    y2 = f(x2)
+
+    intervals = [(a, b)]
+
+    for k in range(2, n + 1):
+        if y1 > y2:
+            a = x1
+            x1, y1 = x2, y2
+            x2 = a + fib.fib(n - k + 2) / fib.fib(n - k + 3) * (b - a)
+            y2 = f(x2)
+        else:
+            b = x2
+            x2, y2 = x1, y1
+            x1 = a + fib.fib(n - k + 1) / fib.fib(n - k + 3) * (b - a)
+            y1 = f(x1)
+        intervals.append((a, b))
+
+    return intervals
+
+
 # todo протестировать
 @minimizer
 def parabola_method(f, a0, b0, eps):
@@ -175,8 +207,14 @@ def brent_method(f, a0, b0, eps):
             intervals.append((a, c))
 
         u = 0
-        if (x != w) and (x != v) and (w != v) and (f_x != f_w) and (f_x != f_v) and (f_w != f_v):
-
+        if (
+                (x != w)
+                and (x != v)
+                and (w != v)
+                and (f_x != f_w)
+                and (f_x != f_v)
+                and (f_w != f_v)
+        ):
             x1 = v
             x2 = x
             x3 = w
@@ -186,7 +224,8 @@ def brent_method(f, a0, b0, eps):
             f3 = f_w
 
             u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
-                        (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1))
+                    (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
+            )
 
         if (a + eps <= u) and (u <= c - eps) and (abs(u - x) < 0.5 * g):
             d = abs(u-x)

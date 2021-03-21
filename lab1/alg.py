@@ -117,7 +117,7 @@ def fibonacci_method(f, a, b, eps):
 
     intervals = [(a, b)]
 
-    for k in range(2, n + 1):
+    for k in range(2, n + 2):
         if y1 > y2:
             a = x1
             x1, y1 = x2, y2

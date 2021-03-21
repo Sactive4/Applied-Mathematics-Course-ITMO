@@ -145,9 +145,10 @@ def parabola_method(f, a0, b0, eps):
     f1 = f(x1)
     f3 = f(x3)
 
+    x2 = (x1 + x3) / 2
+    f2 = f(x2)
+
     while abs(x3 - x1) > eps:
-        x2 = (x1 + x3) / 2
-        f2 = f(x2)
 
         u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
             (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
@@ -162,11 +163,11 @@ def parabola_method(f, a0, b0, eps):
             right_x, right_f = x2, f2
 
         if left_f < right_f:
-            x3 = right_x
-            f3 = right_f
+            x3, f3 = right_x, right_f
+            x2, f2 = left_x, left_f
         else:
-            x1 = left_x
-            f1 = left_f
+            x1, f1 = left_x, left_f
+            x2, f2 = right_x, right_f
 
         intervals.append((x1, x3))
 

@@ -93,6 +93,6 @@ def analysis(l, r, eps, f):
         plt.ylabel("Длина интервала")
         plt.show()
 
+# todo раскомментируйте эту строчку, чтобы вернуть консоль
 # analysis(args.l, args.r, args.eps, f)
-
 analysis(2.15, 7.15, 0.001, f1)

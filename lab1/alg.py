@@ -132,6 +132,111 @@ def fibonacci_method(f, a, b, eps):
 
     return intervals
 
+def get_xs(f, x1, step, a0, b0):
+
+    if ((x1 < a0) or (x1 > b0)):
+        x1 = (a0 + b0) / 2
+
+    x2 = x1 + step
+    x2 = max(a0, min(b0, x2))
+
+    f1 = f(x1)
+    f2 = f(x2)
+    if f1 > f2:
+        return x2, max(a0, min(b0,  x1 + 2 * step)), f1, f2
+    else:
+        return x2, max(a0, min(b0,  x1 -  step)), f1, f2
+
+def get_min_x_f(f1, f2, f3, x1, x2, x3):
+
+    f_min = min(f1, f2, f3)
+    x_min = x1
+
+    if f_min == f1:
+        x_min = x1
+    elif f_min == f2:
+        x_min = x2
+    else:
+        x_min = x3
+
+    return x_min, f_min
+
+
+def square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0):
+
+    #f1 = f(x1)
+    #f2 = f(x2)
+    #f3 = f(x3)
+
+    x_min, f_min = get_min_x_f(f1, f2, f3, x1, x2, x3)
+
+    if (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1) == 0:
+        x_1, x_2, x_3 = get_xs(f, x_min, step, a0, b0)
+        return square_approximation(f, f1, f2, f3, x_1, x_2, x_3, step)
+
+    else:
+        u = 0.5 * ((x2 ** 2 - x3 ** 2) * f1 + (x3 ** 2 - x1 ** 2) * f2 + (x1 ** 2 - x2 ** 2) * f3) / (
+            (x2 - x3) * f1 + (x3 - x1) * f2 + (x1 - x2) * f3
+        )
+        fu = f(u)
+        return u, fu
+
+
+
+@minimizer
+def parabola_method2(f, a0, b0, eps):
+    """Метод квадратичной аппроксимации"""
+
+    intervals = []
+    intervals.append((a0, b0))
+    step = 0.05  # min(0.05, max(abs(b0 - a0) * eps, 10 * eps))
+
+    x1 = (a0 + b0) / 2
+    x2, x3, f1, f2 = get_xs(f, x1, step, a0, b0)
+    f3 = f(x3)
+
+    while True:
+
+        x_min, f_min = get_min_x_f(f1, f2, f3, x1, x2, x3)
+        u, fu = square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0)
+
+        # if (abs(x3 - x1) < eps / 2):
+        #     intervals.append((x1, x3))
+        #     break
+
+        # if ((abs(u - x_min) < eps) and (abs(x3 - x1) < eps)):
+        #     intervals.append((u - eps, u + eps))
+        #     break
+
+        if (abs((f_min - fu) / fu) < eps) and (abs((x_min - u) / u) < eps):
+            intervals.append((u - eps, u + eps))
+            break
+
+        else:
+            if (u >= x1) and (u <= x3):
+                if (f_min < fu):
+                    x2 = x_min
+                else:
+                    x2 = u
+
+                x1 = x2 - step
+                x3 = x2 + step
+                f1 = f(x1)
+                f2 = f(x2)
+                f3 = f(x3)
+
+            else:
+                if (u >= a0) and (u <= b0):
+                    x1 = u
+                else:
+                    x1 = x_min
+                x2, x3, f1, f2 = get_xs(f, x1, step, a0, b0)
+                f3 = f(x3)
+
+            intervals.append((x1, x3))
+
+    return intervals
+
 
 @minimizer
 def parabola_method(f, a0, b0, eps):

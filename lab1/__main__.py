@@ -28,7 +28,12 @@ class CallCounter:
 
 def f(x):
     """Исходная функция"""
+    #return sin(x)
     return sin(x) - log(x ** 2) - 1
+
+def f1(x):
+    """Исходная функция"""
+    return sin(x)
 
 
 parser = ArgumentParser(
@@ -46,42 +51,48 @@ parser.add_argument(
 
 args = parser.parse_args()
 
-if not args.l < args.r:
-    print("Левая граница должна быть меньше правой", file=sys.stderr)
-    sys.exit(1)
+def analysis(l, r, eps, f):
 
-print(
-    "Исследуемая функция:",
-    inspect.getsource(f).split("\n")[2].lstrip()[7:],
-)
+    if not l < r:
+        print("Левая граница должна быть меньше правой", file=sys.stderr)
+        sys.exit(1)
 
-print(f"Исследуемый интервал: ({args.l}, {args.r})")
-print(f"Точность: {args.eps}")
-
-print()
-
-for algo in minimizers:
-    fn_counted = CallCounter(f)
-    intervals = algo(fn_counted, args.l, args.r, args.eps)
-    res = sum(intervals[-1]) / 2.0
-    iter_count = len(intervals)
     print(
-        f"Метод: {algo.__name__}",
-        f"Результат: {res:.3f}",
-        f"Вызовов функции: {fn_counted.get_count()}",
-        f"Итераций: {iter_count}",
-        sep="\n",
-        end="\n\n",
+        "Исследуемая функция:",
+        inspect.getsource(f).split("\n")[2].lstrip()[7:],
     )
-    if args.plot:
-        lengths = [abs(b - a) for a, b in intervals]
-        plt.plot(range(iter_count), lengths, ".-", label=algo.__name__)
-        plt.plot()
 
-if args.plot:
-    plt.legend()
-    plt.gca().xaxis.get_major_locator().set_params(integer=True)
-    plt.title("Изменение длин интервалов в процессе работы алгоритмов")
-    plt.xlabel("Номер итерации")
-    plt.ylabel("Длина интервала")
-    plt.show()
+    print(f"Исследуемый интервал: ({l}, {r})")
+    print(f"Точность: {eps}")
+
+    print()
+
+    for algo in minimizers:
+        fn_counted = CallCounter(f)
+        intervals = algo(fn_counted, l, r, eps)
+        res = sum(intervals[-1]) / 2.0
+        iter_count = len(intervals)
+        print(
+            f"Метод: {algo.__name__}",
+            f"Результат: {res:.3f}",
+            f"Вызовов функции: {fn_counted.get_count()}",
+            f"Итераций: {iter_count}",
+            sep="\n",
+            end="\n\n",
+        )
+        if args.plot:
+            lengths = [abs(b - a) for a, b in intervals]
+            plt.plot(range(iter_count), lengths, ".-", label=algo.__name__)
+            plt.plot()
+
+    if args.plot:
+        plt.legend()
+        plt.gca().xaxis.get_major_locator().set_params(integer=True)
+        plt.title("Изменение длин интервалов в процессе работы алгоритмов")
+        plt.xlabel("Номер итерации")
+        plt.ylabel("Длина интервала")
+        plt.show()
+
+# analysis(args.l, args.r, args.eps, f)
+
+analysis(2.15, 7.15, 0.001, f1)

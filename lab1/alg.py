@@ -172,7 +172,7 @@ def square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0):
 
     if (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1) == 0:
         x_1, x_2, x_3 = get_xs(f, x_min, step, a0, b0)
-        return square_approximation(f, f1, f2, f3, x_1, x_2, x_3, step)
+        return square_approximation(f, f1, f2, f3, x_1, x_2, x_3, step, a0, b0)
 
     else:
         u = 0.5 * ((x2 ** 2 - x3 ** 2) * f1 + (x3 ** 2 - x1 ** 2) * f2 + (x1 ** 2 - x2 ** 2) * f3) / (

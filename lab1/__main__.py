@@ -35,6 +35,10 @@ def f1(x):
     """Исходная функция"""
     return sin(x)
 
+def f2(x):
+    """Исходная функция"""
+    return x + 1/x
+
 
 parser = ArgumentParser(
     description="Найти локальный минимум функции несколькими способами",
@@ -94,5 +98,6 @@ def analysis(l, r, eps, f):
         plt.show()
 
 # todo раскомментируйте эту строчку, чтобы вернуть консоль
-# analysis(args.l, args.r, args.eps, f)
-analysis(2.15, 7.15, 0.001, f1)
+analysis(args.l, args.r, args.eps, f)
+#analysis(2.15, 7.15, 0.0005, f1)
+#analysis(0.5, 2.0, 0.0005, f2)

@@ -187,6 +187,7 @@ def square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0):
 def parabola_method2(f, a0, b0, eps):
     """Метод квадратичной аппроксимации"""
 
+    eps /= 2
     intervals = []
     intervals.append((a0, b0))
     step = 0.05  # min(0.05, max(abs(b0 - a0) * eps, 10 * eps))
@@ -201,7 +202,7 @@ def parabola_method2(f, a0, b0, eps):
         u, fu = square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0)
 
         # if (abs(x3 - x1) < eps / 2):
-        #     intervals.append((x1, x3))
+        #     intervals.append((x1 - eps, x3 + eps))
         #     break
 
         # if ((abs(u - x_min) < eps) and (abs(x3 - x1) < eps)):
@@ -214,22 +215,24 @@ def parabola_method2(f, a0, b0, eps):
 
         else:
             if (u >= x1) and (u <= x3):
-                if (f_min < fu):
+                if (f_min + eps < fu) and (x_min < x2):
                     x2 = x_min
                 else:
                     x2 = u
 
-                x1 = x2 - step
-                x3 = x2 + step
+                assert((x2 >= a0) and (x2 <= b0))
+                x1 = max(a0, x2 - step)
+                x3 = min(b0, x2 + step)
                 f1 = f(x1)
                 f2 = f(x2)
                 f3 = f(x3)
 
             else:
-                if (u >= a0) and (u <= b0):
-                    x1 = u
-                else:
-                    x1 = x_min
+                x1 = u
+                # if (u >= a0) and (u <= b0):
+                #     x1 = u
+                # else:
+                #     x1 = x_min
                 x2, x3, f1, f2 = get_xs(f, x1, step, a0, b0)
                 f3 = f(x3)
 

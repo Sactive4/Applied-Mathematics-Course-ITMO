@@ -52,6 +52,7 @@ parser.add_argument(
     action=BooleanOptionalAction,
     help="Нарисовать графики длин интервалов",
 )
+parser.add_argument("--csv-dump", required=False, help="CSV файл для записи интервалов")
 
 args = parser.parse_args()
 
@@ -71,9 +72,12 @@ def analysis(l, r, eps, f):
 
     print()
 
+    result_intervals = []
+
     for algo in minimizers:
         fn_counted = CallCounter(f)
         intervals = algo(fn_counted, l, r, eps)
+        result_intervals.append(intervals)
         res = sum(intervals[-1]) / 2.0
         iter_count = len(intervals)
         print(
@@ -84,12 +88,25 @@ def analysis(l, r, eps, f):
             sep="\n",
             end="\n\n",
         )
-        if args.plot:
-            lengths = [abs(b - a) for a, b in intervals]
-            plt.plot(range(iter_count), lengths, ".-", label=algo.__name__)
-            plt.plot()
+    
+    if args.csv_dump:
+        with open(args.csv_dump, "w") as dump_f:
+            for algo, intervals in zip(minimizers, result_intervals):
+                print(algo.__name__, file=dump_f)
+                print("left", "right", "width", "delta", sep=",", file=dump_f)
+                prev_width = intervals[0][1] - intervals[0][0]
+                for left, right in intervals:
+                    width = right - left
+                    delta = width / prev_width
+                    print(left, right, width, delta, sep=",", file=dump_f)
+                    prev_width = width
 
     if args.plot:
+        for algo, intervals in zip(minimizers, result_intervals):
+            lengths = [abs(b - a) for a, b in intervals]
+            plt.plot(range(len(intervals)), lengths, ".-", label=algo.__name__)
+            plt.plot()
+
         plt.legend()
         plt.gca().xaxis.get_major_locator().set_params(integer=True)
         plt.title("Изменение длин интервалов в процессе работы алгоритмов")

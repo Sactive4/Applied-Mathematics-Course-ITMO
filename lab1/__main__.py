@@ -79,7 +79,7 @@ def analysis(l, r, eps, f):
         intervals = algo(fn_counted, l, r, eps)
         result_intervals.append(intervals)
         res = sum(intervals[-1]) / 2.0
-        iter_count = len(intervals)
+        iter_count = len(intervals) - 1 # -1 - не учитывать исходный
         print(
             f"Метод: {algo.__name__}",
             f"Результат: {res:.3f}",

@@ -134,7 +134,7 @@ def fibonacci_method(f, a, b, eps):
 
 def get_xs(f, x1, step, a0, b0):
 
-    if ((x1 < a0) or (x1 > b0)):
+    if (x1 < a0) or (x1 > b0):
         x1 = (a0 + b0) / 2
 
     x2 = x1 + step
@@ -142,10 +142,15 @@ def get_xs(f, x1, step, a0, b0):
 
     f1 = f(x1)
     f2 = f(x2)
+
     if f1 > f2:
-        return x2, max(a0, min(b0,  x1 + 2 * step)), f1, f2
+        x3 = x1 + 2 * step
     else:
-        return x2, max(a0, min(b0,  x1 -  step)), f1, f2
+        x3 = x1 - step
+    
+    x3 = max(a0, min(b0, x3))
+    
+    return x2, x3, f1, f2
 
 def get_min_x_f(f1, f2, f3, x1, x2, x3):
     """Выбрать точку с минимальным значением функции"""

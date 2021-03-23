@@ -148,17 +148,9 @@ def get_xs(f, x1, step, a0, b0):
         return x2, max(a0, min(b0,  x1 -  step)), f1, f2
 
 def get_min_x_f(f1, f2, f3, x1, x2, x3):
+    """Выбрать точку с минимальным значением функции"""
 
-    f_min = min(f1, f2, f3)
-    x_min = x1
-
-    if f_min == f1:
-        x_min = x1
-    elif f_min == f2:
-        x_min = x2
-    else:
-        x_min = x3
-
+    f_min, x_min = min((f1, x1), (f2, x2), (f3, x3))
     return x_min, f_min
 
 

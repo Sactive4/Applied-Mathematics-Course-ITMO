@@ -226,48 +226,6 @@ def parabola_method2(f, a0, b0, eps):
 
     return intervals
 
-
-# @minimizer
-# def parabola_method(f, a0, b0, eps):
-#     """Метод парабол"""
-#
-#     intervals = []
-#     intervals.append((a0, b0))
-#
-#     x1 = a0
-#     x3 = b0
-#     f1 = f(x1)
-#     f3 = f(x3)
-#
-#     x2 = (x1 + x3) / 2
-#     f2 = f(x2)
-#
-#     while abs(x3 - x1) > eps:
-#
-#         u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
-#            (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
-#         )
-#         fu = f(u)
-#
-#         if x2 < u:
-#             left_x, left_f = x2, f2
-#             right_x, right_f = u, fu
-#         else:
-#             left_x, left_f = u, fu
-#             right_x, right_f = x2, f2
-#
-#         if left_f < right_f:
-#             x3, f3 = right_x, right_f
-#             x2, f2 = left_x, left_f
-#         else:
-#             x1, f1 = left_x, left_f
-#             x2, f2 = right_x, right_f
-#
-#         intervals.append((x1, x3))
-#
-#     return intervals
-
-
 def sign(x):
     if x > 0:
         return 1
@@ -298,7 +256,6 @@ def brent_method(f, a0, b0, eps):
         g = e
         e = d
 
-        # todo не все итерации добавляются, а только уникальные. норм?
         if intervals[-1] != (a, c):
             intervals.append((a, c))
 
@@ -328,7 +285,6 @@ def brent_method(f, a0, b0, eps):
                 continue
 
 
-        # todo опечатка в коде? я поставил +, а не -, как дано
         if x < 0.5 * (c + a):
             u = x + K * (c - x)
             d = c - x
@@ -353,8 +309,6 @@ def brent_method(f, a0, b0, eps):
             f_x = f_u
         else:
             if u >= x:
-                # todo strange
-                #b = u
                 c = u
             else:
                 a = u

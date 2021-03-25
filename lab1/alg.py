@@ -287,6 +287,8 @@ def brent_method(f, a0, b0, eps):
     a = a0
     c = b0
 
+    eps /= 2
+
     K = (3 - sqrt(5)) / 2
     x = w = v = (a + c) / 2
     f_x = f_w = f_v = f(x)

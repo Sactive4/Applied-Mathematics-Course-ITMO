@@ -120,7 +120,7 @@ def analysis(l, r, eps, f):
 # todo раскомментируйте эту строчку, чтобы вернуть консоль
 
 analysis(args.l, args.r, args.eps, f)
-analysis(2.15, 7.15, 0.0005, f1)
-analysis(0.5, 2.0, 0.0005, f2)
-analysis(-1.0, 1.0, 0.0005, f3)
-analysis(0.7, 6.7, 0.001, f1)
+analysis(2.15, 7.15, 0.001, f1)
+analysis(0.5, 2.0, 0.001, f2)
+analysis(-1.0, 1.0, 0.001, f3)
+analysis(0.7, 6.7, 0.001, f)

@@ -185,7 +185,7 @@ def square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0):
 
 
 @minimizer
-def parabola_method2(f, a0, b0, eps):
+def parabola_method(f, a0, b0, eps):
     """Метод квадратичной аппроксимации"""
 
     eps /= 2

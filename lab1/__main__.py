@@ -13,16 +13,19 @@ def f(x):
     """Исходная функция"""
     return sin(x) - log(x ** 2) - 1
 
+
 def f1(x):
     """Исходная функция"""
     return sin(x)
 
+
 def f2(x):
     """Исходная функция"""
-    return x + 1/x
+    return x + 1 / x
+
 
 def f3(x):
-    return sin(x-1)
+    return sin(x - 1)
 
 
 parser = ArgumentParser(
@@ -40,6 +43,7 @@ parser.add_argument(
 parser.add_argument("--csv-dump", required=False, help="CSV файл для записи интервалов")
 
 args = parser.parse_args()
+
 
 def analysis(l, r, eps, f):
 
@@ -64,7 +68,7 @@ def analysis(l, r, eps, f):
         intervals = algo(fn_counted, l, r, eps)
         result_intervals.append(intervals)
         res = sum(intervals[-1]) / 2.0
-        iter_count = len(intervals) - 1 # -1 - не учитывать исходный
+        iter_count = len(intervals) - 1  # -1 - не учитывать исходный
         print(
             f"Метод: {algo.__name__}",
             f"Результат: {res:.3f}",
@@ -73,7 +77,7 @@ def analysis(l, r, eps, f):
             sep="\n",
             end="\n\n",
         )
-    
+
     if args.csv_dump:
         with open(args.csv_dump, "w") as dump_f:
             for algo, intervals in zip(minimizers, result_intervals):
@@ -99,10 +103,9 @@ def analysis(l, r, eps, f):
         plt.ylabel("Длина интервала")
         plt.show()
 
-# todo раскомментируйте эту строчку, чтобы вернуть консоль
 
 analysis(args.l, args.r, args.eps, f)
-analysis(2.15, 7.15, 0.001, f1)
-analysis(0.5, 2.0, 0.001, f2)
-analysis(-1.0, 1.0, 0.001, f3)
-analysis(0.7, 6.7, 0.001, f)
+# analysis(2.15, 7.15, 0.001, f1)
+# analysis(0.5, 2.0, 0.001, f2)
+# analysis(-1.0, 1.0, 0.001, f3)
+# analysis(0.7, 6.7, 0.001, f)

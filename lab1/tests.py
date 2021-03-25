@@ -1,5 +1,6 @@
 from alg import Fibonacci
 
+
 def test_fibonacci_pre_cached():
     f = Fibonacci()
     assert f.fib(10) == 89

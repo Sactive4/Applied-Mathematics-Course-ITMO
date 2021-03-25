@@ -1,7 +1,6 @@
 from bisect import bisect_left
 from math import sqrt
 
-
 minimizers = []
 
 
@@ -178,7 +177,7 @@ def square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0):
                 + (x3 ** 2 - x1 ** 2) * f2
                 + (x1 ** 2 - x2 ** 2) * f3
             )
-            / ( (x2 - x3) * f1 + (x3 - x1) * f2 + (x1 - x2) * f3)
+            / ((x2 - x3) * f1 + (x3 - x1) * f2 + (x1 - x2) * f3)
         )
         fu = f(u)
         return u, fu
@@ -208,7 +207,7 @@ def parabola_method(f, a0, b0, eps):
             break
 
         if x1 <= u <= x3:
-            if (f_min + eps < fu):
+            if f_min + eps < fu:
                 x2, f2 = x_min, f_min
             else:
                 x2, f2 = u, fu
@@ -225,6 +224,7 @@ def parabola_method(f, a0, b0, eps):
         intervals.append((x1, x3))
 
     return intervals
+
 
 def sign(x):
     if x > 0:
@@ -283,7 +283,6 @@ def brent_method(f, a0, b0, eps):
             if (a + eps <= u) and (u <= c - eps) and (abs(u - x) < 0.5 * g):
                 d = abs(u - x)
                 continue
-
 
         if x < 0.5 * (c + a):
             u = x + K * (c - x)

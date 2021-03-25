@@ -28,7 +28,6 @@ class CallCounter:
 
 def f(x):
     """Исходная функция"""
-    #return sin(x)
     return sin(x) - log(x ** 2) - 1
 
 def f1(x):

@@ -28,7 +28,6 @@ class CallCounter:
 
 def f(x):
     """Исходная функция"""
-    #return sin(x)
     return sin(x) - log(x ** 2) - 1
 
 def f1(x):
@@ -38,6 +37,9 @@ def f1(x):
 def f2(x):
     """Исходная функция"""
     return x + 1/x
+
+def f3(x):
+    return sin(x-1)
 
 
 parser = ArgumentParser(
@@ -115,6 +117,9 @@ def analysis(l, r, eps, f):
         plt.show()
 
 # todo раскомментируйте эту строчку, чтобы вернуть консоль
+
 analysis(args.l, args.r, args.eps, f)
-#analysis(2.15, 7.15, 0.0005, f1)
-#analysis(0.5, 2.0, 0.0005, f2)
+analysis(2.15, 7.15, 0.001, f1)
+analysis(0.5, 2.0, 0.001, f2)
+analysis(-1.0, 1.0, 0.001, f3)
+analysis(0.7, 6.7, 0.001, f)

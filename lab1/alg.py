@@ -10,6 +10,19 @@ def minimizer(fn):
     return fn
 
 
+# K - золотое сечения = 1 - 1 / phi = 1 - 1 / 1.618.. = 0.382
+K = (3 - sqrt(5)) / 2
+# STEP - длина шага для кв. аппроксимации
+STEP = 0.05
+
+# CODE STYLE
+# a0, b0 - начальный интервал
+# a, b - текущий интервал
+# intervals - массив отрезков по итерациям
+# [ d - длина текущего интервала ]
+# K - золотое сечения = 1 - 1 / phi = 1 - 1 / 1.618.. = 0.382
+
+
 @minimizer
 def dichotomy_method(f, a0, b0, eps):
     """Метод дихотомии"""
@@ -17,10 +30,10 @@ def dichotomy_method(f, a0, b0, eps):
     b = b0
     delta = eps / 2
 
-    interval_length = abs(b - a)
+    d = abs(b - a)
     intervals = [(a, b)]
 
-    while interval_length > eps:
+    while d > eps:
         x1 = (a + b - delta) / 2
         x2 = (a + b + delta) / 2
         y1 = f(x1)
@@ -33,7 +46,7 @@ def dichotomy_method(f, a0, b0, eps):
             a = x1
             b = x2
 
-        interval_length = abs(b - a)
+        d = abs(b - a)
         intervals.append((a, b))
 
     return intervals
@@ -44,30 +57,29 @@ def golden_ratio_method(f, a0, b0, eps):
     """Метод золотого сечения"""
     a = a0
     b = b0
-    interval_length = abs(b - a)
+    d = abs(b - a)
 
-    phi = (3 - sqrt(5)) / 2
-    x1 = a + phi * interval_length
-    x2 = b - phi * interval_length
+    x1 = a + K * d
+    x2 = b - K * d
     y1 = f(x1)
     y2 = f(x2)
 
     intervals = [(a, b)]
 
-    while interval_length > eps:
+    while d > eps:
         if y1 >= y2:
             a = x1
             x1 = x2
-            x2 = b - phi * (b - a)
+            x2 = b - K * (b - a)
             y1 = y2
             y2 = f(x2)
         else:
             b = x2
             x2 = x1
-            x1 = a + phi * (b - a)
+            x1 = a + K * (b - a)
             y2 = y1
             y1 = f(x1)
-        interval_length = b - a
+        d = b - a
         intervals.append((a, b))
     return intervals
 
@@ -101,8 +113,11 @@ class Fibonacci:
 
 
 @minimizer
-def fibonacci_method(f, a, b, eps):
+def fibonacci_method(f, a0, b0, eps):
     """Метод Фибоначчи"""
+
+    a = a0
+    b = b0
 
     fib = Fibonacci()
 
@@ -132,13 +147,10 @@ def fibonacci_method(f, a, b, eps):
     return intervals
 
 
-def get_xs(f, x1, f1, step, a0, b0):
-    """Найти точки вблизи исследуемой. Точки возвращаются в естественном порядке"""
-
-    assert a0 <= x1 <= b0
+def get_xs(f, x1, f1, step):
+    """Найти точки вблизи начальной. Точки возвращаются в естественном порядке"""
 
     x2 = x1 + step
-    x2 = max(a0, min(b0, x2))
     f2 = f(x2)
 
     if f1 > f2:
@@ -146,10 +158,16 @@ def get_xs(f, x1, f1, step, a0, b0):
     else:
         x3 = x1 - step
 
-    x3 = max(a0, min(b0, x3))
     f3 = f(x3)
 
     (x1, f1), (x2, f2), (x3, f3) = sorted([(x1, f1), (x2, f2), (x3, f3)])
+
+    #                        0               0      0                   0
+    #  0          x2            0          0            x1            0
+    #    0     x1                 x1    x3                  x2      0
+    #       x3                       x2                         x3
+    #
+    #   МЕЖДУ x1, x2, x3 = step
 
     return x1, x2, x3, f1, f2, f3
 
@@ -161,13 +179,13 @@ def get_min_x_f(f1, f2, f3, x1, x2, x3):
     return x_min, f_min
 
 
-def square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0):
+def square_approximation(f, f1, f2, f3, x1, x2, x3, step):
     """Найти вершину параболы по трём точкам. При линейном расположении точек перейти к новым"""
 
     if (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1) == 0:
         x_min, f_min = get_min_x_f(f1, f2, f3, x1, x2, x3)
-        x1, x2, x3, f1, f2, f3 = get_xs(f, x_min, f_min, step, a0, b0)
-        return square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0)
+        x1, x2, x3, f1, f2, f3 = get_xs(f, x_min, f_min, step)
+        return square_approximation(f, f1, f2, f3, x1, x2, x3, step)
 
     else:
         u = (
@@ -179,8 +197,7 @@ def square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0):
             )
             / ((x2 - x3) * f1 + (x3 - x1) * f2 + (x1 - x2) * f3)
         )
-        fu = f(u)
-        return u, fu
+        return u
 
 
 @minimizer
@@ -190,36 +207,35 @@ def parabola_method(f, a0, b0, eps):
     eps /= 2
     intervals = []
     intervals.append((a0, b0))
-    step = 0.05
 
     x1 = (a0 + b0) / 2
     f1 = f(x1)
-    x1, x2, x3, f1, f2, f3 = get_xs(f, x1, f1, step, a0, b0)
+    x1, x2, x3, f1, f2, f3 = get_xs(f, x1, f1, STEP)
     f3 = f(x3)
 
     while True:
 
         x_min, f_min = get_min_x_f(f1, f2, f3, x1, x2, x3)
-        u, fu = square_approximation(f, f1, f2, f3, x1, x2, x3, step, a0, b0)
+        u = square_approximation(f, f1, f2, f3, x1, x2, x3, STEP)
+        fu = f(u)
 
-        if (abs((f_min - fu) / fu) < eps) and (abs((x_min - u) / u) < eps):
+        if abs((f_min - fu) / fu) < eps and abs((x_min - u) / u) < eps:
             intervals.append((u - eps, u + eps))
             break
 
         if x1 <= u <= x3:
-            if f_min + eps < fu:
-                x2, f2 = x_min, f_min
-            else:
+            # если улучшили результат, принять
+            if f_min + eps >= fu:
                 x2, f2 = u, fu
-
-            assert (x2 >= a0) and (x2 <= b0)
-            x1 = max(a0, x2 - step)
-            x3 = min(b0, x2 + step)
+            else:
+                x2, f2 = x_min, f_min
+            x1 = x2 - STEP
+            x3 = x2 + STEP
             f1 = f(x1)
             f3 = f(x3)
 
         else:
-            x1, x2, x3, f1, f2, f3 = get_xs(f, u, fu, step, a0, b0)
+            x1, x2, x3, f1, f2, f3 = get_xs(f, u, fu, STEP)
 
         intervals.append((x1, x3))
 
@@ -242,24 +258,30 @@ def brent_method(f, a0, b0, eps):
     intervals = []
     intervals.append((a0, b0))
 
+    # a, b - текущий интервал поиска
+    # x - текущий минимум
+    # f(x) - текущее минимальное значение
+    # w - второе снизу значение функции
+    # v - предыдущее значение w
+    # u - минимум аппроксимации
+
     a = a0
-    c = b0
+    b = b0
 
     eps /= 2
 
-    K = (3 - sqrt(5)) / 2
-    x = w = v = (a + c) / 2
+    x = w = v = (a + b) / 2
     f_x = f_w = f_v = f(x)
-    d = e = c - a
+    d = e = b - a
 
     while d > eps:
         g = e
         e = d
 
-        if intervals[-1] != (a, c):
-            intervals.append((a, c))
+        if intervals[-1] != (a, b):
+            intervals.append((a, b))
 
-        u = 0
+        # нужно выбрать минимум u:
         if (
             (x != w)
             and (x != v)
@@ -268,25 +290,27 @@ def brent_method(f, a0, b0, eps):
             and (f_x != f_v)
             and (f_w != f_v)
         ):
-            x1 = v
-            x2 = x
-            x3 = w
+            # x1 = v
+            # x2 = x
+            # x3 = w
 
-            f1 = f_v
-            f2 = f_x
-            f3 = f_w
+            # f1 = f_v
+            # f2 = f_x
+            # f3 = f_w
 
-            u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
-                (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
-            )
+            # u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
+            #     (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
+            # )
 
-            if (a + eps <= u) and (u <= c - eps) and (abs(u - x) < 0.5 * g):
+            u = square_approximation(f, f_v, f_x, f_w, v, x, w, STEP)
+
+            if a + eps <= u <= b - eps and abs(u - x) < 0.5 * g:
                 d = abs(u - x)
                 continue
 
-        if x < 0.5 * (c + a):
-            u = x + K * (c - x)
-            d = c - x
+        if x < 0.5 * (b + a):
+            u = x + K * (b - x)
+            d = b - x
         else:
             u = x - K * (x - a)
             d = x - a
@@ -294,12 +318,13 @@ def brent_method(f, a0, b0, eps):
         if abs(u - x) < eps:
             u = x + sign(u - x) * eps
 
+        # обновить значения с новой u
         f_u = f(u)
         if f_u <= f_x:
             if u >= x:
                 a = x
             else:
-                c = x
+                b = x
             v = w
             w = x
             x = u
@@ -308,15 +333,17 @@ def brent_method(f, a0, b0, eps):
             f_x = f_u
         else:
             if u >= x:
-                c = u
+                b = u
             else:
                 a = u
-            if (f_u <= f_w) or (w == x):
+            if f_u <= f_w or w == x:
+                # откатиться на 1 шаг назад
                 v = w
                 w = u
                 f_v = f_w
                 f_w = f_u
-            elif (f_u <= f_v) or (v == x) or (v == w):
+            elif f_u <= f_v or v == x or v == w:
+                # откатиться на 2 шага назад
                 v = u
                 f_v = f_u
 

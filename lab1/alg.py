@@ -163,9 +163,9 @@ def get_xs(f, x1, f1, step):
     (x1, f1), (x2, f2), (x3, f3) = sorted([(x1, f1), (x2, f2), (x3, f3)])
 
     #                        0               0      0                   0
-    #  0          x2            0          0            x1            0
-    #    0     x1                 x1    x3                  x2      0
-    #       x3                       x2                         x3
+    #  0          x3            0          0            x1            0
+    #    0     x2                 x1    x3                  x2      0
+    #       x1                       x2                         x3
     #
     #   МЕЖДУ x1, x2, x3 = step
 

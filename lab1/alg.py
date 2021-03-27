@@ -1,5 +1,5 @@
 from bisect import bisect_left
-from math import sqrt
+from math import sqrt, isclose
 
 minimizers = []
 
@@ -179,13 +179,15 @@ def get_min_x_f(f1, f2, f3, x1, x2, x3):
     return x_min, f_min
 
 
+class ApproximationError(RuntimeError):
+    pass
+
+
 def square_approximation(f, f1, f2, f3, x1, x2, x3, step):
     """Найти вершину параболы по трём точкам. При линейном расположении точек перейти к новым"""
 
-    if (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1) == 0:
-        x_min, f_min = get_min_x_f(f1, f2, f3, x1, x2, x3)
-        x1, x2, x3, f1, f2, f3 = get_xs(f, x_min, f_min, step)
-        return square_approximation(f, f1, f2, f3, x1, x2, x3, step)
+    if isclose((x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1), 0):
+        raise ApproximationError("Аппроксимируемые точки лежат на одной прямой")
 
     else:
         u = (
@@ -216,7 +218,14 @@ def parabola_method(f, a0, b0, eps):
     while True:
 
         x_min, f_min = get_min_x_f(f1, f2, f3, x1, x2, x3)
-        u = square_approximation(f, f1, f2, f3, x1, x2, x3, STEP)
+
+        try:
+            u = square_approximation(f, f1, f2, f3, x1, x2, x3, STEP)
+        except ApproximationError:
+            x1, x2, x3, f1, f2, f3 = get_xs(f, x_min, f_min, STEP)
+            continue
+
+            
         fu = f(u)
 
         if abs((f_min - fu) / fu) < eps and abs((x_min - u) / u) < eps:
@@ -290,11 +299,14 @@ def brent_method(f, a0, b0, eps):
             and (f_x != f_v)
             and (f_w != f_v)
         ):
-            u = square_approximation(f, f_v, f_x, f_w, v, x, w, STEP)
-
-            if a + eps <= u <= b - eps and abs(u - x) < 0.5 * g:
-                d = abs(u - x)
-                continue
+            try:
+                u = square_approximation(f, f_v, f_x, f_w, v, x, w, STEP)
+            except ApproximationError:
+                pass
+            else:
+                if a + eps <= u <= b - eps and abs(u - x) < 0.5 * g:
+                    d = abs(u - x)
+                    continue
 
         if x < 0.5 * (b + a):
             u = x + K * (b - x)

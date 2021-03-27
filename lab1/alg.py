@@ -290,18 +290,6 @@ def brent_method(f, a0, b0, eps):
             and (f_x != f_v)
             and (f_w != f_v)
         ):
-            # x1 = v
-            # x2 = x
-            # x3 = w
-
-            # f1 = f_v
-            # f2 = f_x
-            # f3 = f_w
-
-            # u = x2 - 0.5 * ((x2 - x1) ** 2 * (f2 - f3) - (x2 - x3) ** 2 * (f2 - f1)) / (
-            #     (x2 - x1) * (f2 - f3) - (x2 - x3) * (f2 - f1)
-            # )
-
             u = square_approximation(f, f_v, f_x, f_w, v, x, w, STEP)
 
             if a + eps <= u <= b - eps and abs(u - x) < 0.5 * g:

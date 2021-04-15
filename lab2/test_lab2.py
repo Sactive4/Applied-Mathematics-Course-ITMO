@@ -4,6 +4,7 @@ import numpy as np
 
 from math_util import (
     gradient,
+    hessian_matrix,
     norm,
     norm_gradient,
     normalize,
@@ -105,3 +106,13 @@ def test_norm_gradient():
 
     for actual_num, expected_num in zip(actual, expected):
         assert isclose(actual_num, expected_num)
+
+
+def test_hessian_matrix():
+    fn = lambda x, y: 4 * x ** 2 - y ** 3
+    actual = hessian_matrix(fn, [-9.0, 2.0])
+    expected = [[8.0, 0.0], [0.0, -12.0]]
+
+    for actual_row, expected_row in zip(actual, expected):
+        for actual_num, expected_num in zip(actual_row, expected_row):
+            assert isclose(actual_num, expected_num, abs_tol=TOL)

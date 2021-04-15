@@ -52,6 +52,18 @@ def gradient(f, x):
     return result
 
 
+def hessian_matrix(f, x):
+    """Найти найти матрицу Гессе функции f в точке x
+    f - дифференцируемая функция
+    x - вектор координат точки, len(x) совпадает с числом параметров f
+    """
+
+    return [
+        [second_partial_derivative(f, x, i, j) for j in range(len(x))]
+        for i in range(len(x))
+    ]
+
+
 def norm(x):
     """Норма вектора x"""
 

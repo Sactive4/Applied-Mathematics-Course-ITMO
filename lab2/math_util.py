@@ -41,5 +41,6 @@ def normalize(x):
         y[i] /= length
     return y
 
+
 def norm_gradient(f, x):
     return normalize(gradient(f, x))

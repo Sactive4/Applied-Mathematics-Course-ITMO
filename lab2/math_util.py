@@ -32,3 +32,14 @@ def gradient(f, x):
 
 def norm(x):
     return sum(map(lambda num: num ** 2, x)) ** (1 / 2)
+
+
+def normalize(x):
+    y = x.copy()
+    length = norm(y)
+    for i in range(len(y)):
+        y[i] /= length
+    return y
+
+def norm_gradient(f, x):
+    return normalize(gradient(f, x))

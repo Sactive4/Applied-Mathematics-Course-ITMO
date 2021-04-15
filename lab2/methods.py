@@ -1,4 +1,4 @@
-from math_util import norm, gradient, norm_gradient
+from math_util import norm, gradient, norm_gradient, hessian_matrix
 import numpy as np
 from primathlab1.alg import golden_ratio_method
 
@@ -148,3 +148,43 @@ def conjugate_direction_method(f, x0, eps):
     # todo: переписать эту строчку --- grad * (grad - grad_prev)
     # здесь нужно скалярное произведение
     return conjugate_method(f, x0, eps, lambda grad, grad_prev: (grad * (grad - grad_prev))/ (norm(grad) ** 2))
+
+
+def newton_method(f, x0, eps):
+    """Найти минимум методом Ньютона-Рафсона
+    f - многомерная функция
+    x0 - начальный вектор-точка
+    eps - требуемая точность
+    """
+
+    k = 0
+    x = np.array(x0)
+    prev_x = np.array([float("inf")] * len(x))
+
+    grad = gradient(f, x)
+
+    while (
+        norm(grad) >= eps
+        and k < M
+        and norm(prev_x - x) >= eps
+        and abs(f(*x) - f(*prev_x)) >= eps
+    ):
+        hessian = np.array(hessian_matrix(f, x))
+
+        try:        
+            inv_hessian = np.linalg.inv(hessian)
+        except np.linalg.LinAlgError: # TODO: вырожденная матрица - что делать?
+            direction = -grad
+        else:
+            if np.linalg.det(inv_hessian) > 0:
+                direction = -np.matmul(inv_hessian, np.atleast_2d(grad).transpose())
+                direction = direction.transpose()[0]
+            else:
+                direction = -grad
+        
+        prev_x = x.copy()
+        x += direction # TODO: добавить выбор шага
+        grad = gradient(f, x)
+        k += 1
+    
+    return x, k

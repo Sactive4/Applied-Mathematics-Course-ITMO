@@ -22,6 +22,7 @@ def test_function(fn, x, eps, step, alpha, answer):
     print_correct(gradient_method(fn, x, eps, lambda_quickest_descent), answer, eps, "QUICKEST DESCENT")
     print_correct(conjugate_gradient_method(fn, x, eps), answer, eps, "CONJUGATED GRADS")
     print_correct(conjugate_direction_method(fn, x, eps), answer, eps, "CONJUGATED DIRS")
+    print_correct(newton_method(fn, x, eps), answer, eps, "NEWTON")
 
 fn1 = lambda x, y: x ** 2 + y ** 2
 # ответ 0, 0

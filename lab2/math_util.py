@@ -28,3 +28,7 @@ def gradient(f, x):
         result[i] = partial_derivative(f, x, i)
 
     return result
+
+
+def norm(x):
+    return sum(map(lambda num: num ** 2, x)) ** (1 / 2)

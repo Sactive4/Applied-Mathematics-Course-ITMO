@@ -2,7 +2,7 @@ from math import isclose
 
 import numpy as np
 
-from math_util import DIFFERENTIATION_STEP, gradient, partial_derivative
+from math_util import DIFFERENTIATION_STEP, gradient, partial_derivative, norm
 
 
 def test_partial_derivative_hyperbola():

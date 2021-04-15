@@ -1,5 +1,5 @@
 from methods import *
-
+import inspect
 
 def check_correct(x, answer, eps):
     for i in range(len(x)):
@@ -17,12 +17,14 @@ def print_correct(x, answer, eps, title):
             print("-- " + title + " " + str(x[1]))
 
 def test_function(fn, x, eps, step, alpha, answer):
+    print(inspect.getsource(fn))
     print_correct(gradient_method(fn, x, eps, lambda_const(step)), answer, eps, "CONST STEP")
     print_correct(gradient_method(fn, x, eps, lambda_ratio(step, alpha)), answer, eps, "CONST RATIO")
     print_correct(gradient_method(fn, x, eps, lambda_quickest_descent), answer, eps, "QUICKEST DESCENT")
     print_correct(conjugate_gradient_method(fn, x, eps), answer, eps, "CONJUGATED GRADS")
     print_correct(conjugate_direction_method(fn, x, eps), answer, eps, "CONJUGATED DIRS")
     print_correct(newton_method(fn, x, eps), answer, eps, "NEWTON")
+    print("")
 
 fn1 = lambda x, y: x ** 2 + y ** 2
 # ответ 0, 0

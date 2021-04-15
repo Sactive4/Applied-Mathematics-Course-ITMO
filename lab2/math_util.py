@@ -1,4 +1,4 @@
-DIFFERENTIATION_STEP = 1e-9
+DIFF_STEP = 1 / 2 ** 20
 
 
 def partial_derivative(f, x, i):
@@ -8,12 +8,25 @@ def partial_derivative(f, x, i):
     i - номер координаты, по которой дифференцирование, 0 <= i < len(x)
     """
 
-    f_x = f(*x)
     x1 = x.copy()
-    x1[i] = x1[i] + DIFFERENTIATION_STEP
-    f_x1 = f(*x1)
+    x2 = x.copy()
+    x1[i] = x1[i] + DIFF_STEP
+    x2[i] = x1[i] - DIFF_STEP
+    f1 = f(*x1)
+    f2 = f(*x2)
 
-    return (f_x1 - f_x) / (x1[i] - x[i])
+    return (f1 - f2) / (x1[i] - x2[i])
+
+
+def second_partial_derivative(f, x, i1, i2):
+    x1 = x.copy()
+    x2 = x.copy()
+    x1[i2] = x1[i2] + DIFF_STEP
+    x2[i2] = x1[i2] - DIFF_STEP
+    d1 = partial_derivative(f, x1, i1)
+    d2 = partial_derivative(f, x2, i1)
+
+    return (d1 - d2) / (x1[i2] - x2[i2])
 
 
 def gradient(f, x):

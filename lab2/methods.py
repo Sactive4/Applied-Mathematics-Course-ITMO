@@ -1,9 +1,11 @@
-from math_util import norm, norm_gradient
+from math_util import norm, gradient, norm_gradient
 import numpy as np
 from primathlab1.alg import golden_ratio_method
 
-
+# бесконечность для дефолтного значения
 INF = 100000000
+# предельное число итераций (это значит, что алгоритм не сходится)
+M = 50000
 
 def gradient_method(f, x0, eps, lambda_f):
     """Найти минимум методом градиентного спуска
@@ -26,9 +28,15 @@ def gradient_method(f, x0, eps, lambda_f):
     lambda_k = INF
     lambda_kx1 = INF
 
-    k = 0
+    k = -1
 
     while True:
+
+        k += 1
+        if k >= M:
+            break
+
+
         # следующая итерация, поменять значения
         x_k = x_kx1
         lambda_k = lambda_kx1
@@ -41,22 +49,12 @@ def gradient_method(f, x0, eps, lambda_f):
         x_kx1 = x_k - lambda_kx1 * grad
 
         length = norm(x_kx1 - x_k)
-        k += 1
+
         if (length < eps) and (abs(f(*x_k) - f(*x_kx1)) < eps):
             break
-        if k > 100000:
-            break
     
-    return x_kx1
+    return x_kx1, k
 
-
-def lambda_const(f, x_k, lambda_k):
-    return 0.5
-
-def lambda_ratio(f, x_k, lambda_k):
-    if (lambda_k == INF):
-        return 0.5
-    return lambda_k * 0.97
 
 def lambda_quickest_descent(f, x_k, lambda_k):
     fu = lambda x: f(*(x_k - x * norm_gradient(f, x_k)))
@@ -64,23 +62,90 @@ def lambda_quickest_descent(f, x_k, lambda_k):
     v = sum(u[-1]) / 2
     return v
 
-
-fn1 = lambda x, y: x ** 2 + y ** 2
-# ответ 0, 0
-fn2 = lambda x, y: 22 * ((x-100) ** 4) + 8 * (y ** 4)
-# ответ 100, 0
-
-def test_function(fn, x, eps, step):
-
-    fn_answer1 = gradient_method(fn, x, eps, lambda x, y, z: step)
-    print(fn_answer1)
-    fn_answer2 = gradient_method(fn, x, eps, lambda_ratio)
-    print(fn_answer2)
-    fn_answer3 = gradient_method(fn, x, eps, lambda_quickest_descent)
-    print(fn_answer3)
-
-test_function(fn1, np.array([200., 10.]), 0.001, 0.5)
-test_function(fn2, np.array([200., 10.]), 0.001, 1)
-# ставлю
+def quickest_descent_gradient_method(f, x0, eps):
+    """Найти минимум методом наискорейшего градиентного спуска
+    f - многомерная функция
+    x0 - начальный вектор-точка
+    eps - требуемая точность
+    """
+    return gradient_method(f, x0, eps, lambda_quickest_descent)
 
 
+
+def lambda_const(l):
+    return lambda f, x_k, lambda_k: l
+
+def lambda_ratio(l, a):
+    return lambda f, x_k, lambda_k: l if lambda_k == INF else a * lambda_k 
+
+
+def conjugate_method(f, x0, eps, lambda_b):
+    """Найти минимум общим сопряженным методом
+    f - многомерная функция
+    x0 - начальный вектор-точка
+    eps - требуемая точность
+    b - лямбда для подсчета beta
+    """
+
+    k = 0
+
+    x_prev = x0
+    x_k = x0
+    x_next = x0
+
+    grad = grad_prev = norm_gradient(f, x_k)
+    d = -gradient(f, x_k)
+
+    while True:
+
+        k += 1
+        if k >= M:
+            break
+
+        x_prev = x_k
+        x_k = x_next
+
+        grad_prev = grad
+        grad = norm_gradient(f, x_k)
+
+        b = lambda_b(grad, grad_prev)
+        d = -grad + b * d
+
+        f_min = lambda t: f(*(x_k + t * d))
+        u = golden_ratio_method(f_min, -100, 100, 0.001)
+        t = sum(u[-1]) / 2
+
+        x_next = x_k + t * d
+
+        if (norm(x_next - x_k) < eps) and (abs(f(*x_next) - f(*x_k)) < eps):
+            return x_k, k
+        
+        # if (norm(grad) < eps):
+        #     return x_k, k
+        
+
+    return x_k, k
+
+
+def conjugate_gradient_method(f, x0, eps):
+    """Найти минимум методом сопряженных градиентов (Флетчера-Ривса)
+    f - многомерная функция
+    x0 - начальный вектор-точка
+    eps - требуемая точность
+    ОСТОРОЖНО! Его применение ограничено квадратичными функциями! т.е. H > 0
+    """
+
+    # todo: проверить гессиан на положительность
+
+    return conjugate_method(f, x0, eps, lambda grad, grad_prev: (norm(grad) ** 2) / (norm(grad_prev) ** 2))
+
+def conjugate_direction_method(f, x0, eps):
+    """Найти минимум методом сопряженных направлений (Полака-Райбера)
+    f - многомерная функция
+    x0 - начальный вектор-точка
+    eps - требуемая точность
+    """
+
+    # todo: переписать эту строчку --- grad * (grad - grad_prev)
+    # здесь нужно скалярное произведение
+    return conjugate_method(f, x0, eps, lambda grad, grad_prev: (grad * (grad - grad_prev))/ (norm(grad) ** 2))

@@ -36,7 +36,6 @@ def gradient_method(f, x0, eps, lambda_f):
         if k >= M:
             break
 
-
         # следующая итерация, поменять значения
         x_k = x_kx1
         lambda_k = lambda_kx1

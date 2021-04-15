@@ -111,12 +111,12 @@ def conjugate_method(f, x0, eps, lambda_b):
         d = -grad + b * d
 
         f_min = lambda t: f(*(x_k + t * d))
-        u = golden_ratio_method(f_min, -100, 100, 0.001)
+        u = golden_ratio_method(f_min, -1/eps, 1/eps, eps)
         t = sum(u[-1]) / 2
 
         x_next = x_k + t * d
 
-        if (norm(x_next - x_k) < eps) and (abs(f(*x_next) - f(*x_k)) < eps):
+        if (norm(x_next - x_k) < eps) or (abs(f(*x_next) - f(*x_k)) < eps):
             return x_k, k
         
         # if (norm(grad) < eps):

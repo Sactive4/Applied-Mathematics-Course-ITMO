@@ -5,8 +5,8 @@ from math import log, sin
 
 import matplotlib.pyplot as plt
 
-from alg import minimizers
-from util import CallCounter
+from primathlab1.alg import minimizers
+from primathlab1.util import CallCounter
 
 
 def f(x):

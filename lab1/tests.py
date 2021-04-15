@@ -1,4 +1,4 @@
-from alg import Fibonacci
+from primathlab1.alg import Fibonacci
 
 
 def test_fibonacci_pre_cached():

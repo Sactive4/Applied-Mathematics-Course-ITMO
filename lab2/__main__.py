@@ -18,7 +18,9 @@ def print_correct(x, answer, eps, title):
 
 def test_function(fn, x, eps, step, alpha, answer):
     print_correct(gradient_method(fn, x, eps, lambda_const(step)), answer, eps, "CONST STEP")
+    print_correct(gradient_method(fn, x, eps, lambda_const_checked(step)), answer, eps, "CONST STEP CHECKED")
     print_correct(gradient_method(fn, x, eps, lambda_ratio(step, alpha)), answer, eps, "CONST RATIO")
+    print_correct(gradient_method(fn, x, eps, LambdaRatioChecked(step, alpha)), answer, eps, "CONST RATIO CHECKED")
     print_correct(gradient_method(fn, x, eps, lambda_quickest_descent), answer, eps, "QUICKEST DESCENT")
     print_correct(conjugate_gradient_method(fn, x, eps), answer, eps, "CONJUGATED GRADS")
     print_correct(conjugate_direction_method(fn, x, eps), answer, eps, "CONJUGATED DIRS")

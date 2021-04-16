@@ -67,13 +67,46 @@ def quickest_descent_gradient_method(f, x0, eps):
     return gradient_method(f, x0, eps, lambda_quickest_descent)
 
 
+def check_monotonic(f, curr_x, grad, step):
+    curr_f = f(*curr_x)
+    next_f = f(*(curr_x - step * grad))
+    return next_f <= curr_f
+
+
+def reduce_until_monotonic(f, curr_x, grad, step):
+    while not check_monotonic(f, curr_x, grad, step):
+        step /= 2
+
+    return step
+
+
+def lambda_const_checked(step):
+    return lambda f, curr_x, grad, **kwargs: reduce_until_monotonic(
+        f, curr_x, grad, step
+    )
+
+
+class LambdaRatioChecked:
+    def __init__(self, step, coef):
+        self._curr_step = step
+        self._coef = coef
+
+    def __call__(self, f, curr_x, grad, **kwargs):
+        step = reduce_until_monotonic(f, curr_x, grad, self._curr_step)
+        self._curr_step *= self._coef
+        return step
+
+
 def lambda_const(step):
     return lambda **kwargs: step
 
 
 def lambda_ratio(step, coef):
-    return lambda prev_step, **kwargs: \
-        step if prev_step == float("inf") else coef * prev_step
+    return (
+        lambda prev_step, **kwargs: step
+        if prev_step == float("inf")
+        else coef * prev_step
+    )
 
 
 def conjugate_method(f, x0, eps, lambda_b):

@@ -24,6 +24,8 @@ def gradient_method(f, x0, eps, choose_step):
     # lambda_k - текущий шаг
     # lambda_kx1 - следующий шаг
 
+    trajectory = [x0]
+
     x_k = x0
     x_kx1 = x0
     lambda_k = lambda_kx1 = float("inf")
@@ -31,6 +33,7 @@ def gradient_method(f, x0, eps, choose_step):
     k = 0
 
     while k < M:
+        k += 1
 
         # следующая итерация, поменять значения
         x_k = x_kx1
@@ -43,12 +46,12 @@ def gradient_method(f, x0, eps, choose_step):
 
         length = norm(x_kx1 - x_k)
 
+        trajectory.append(x_kx1)
+
         if (length < eps) and (abs(f(*x_k) - f(*x_kx1)) < eps):
             break
 
-        k += 1
-
-    return x_kx1, k
+    return trajectory
 
 
 def lambda_quickest_descent(f, curr_x, prev_step, grad, **kwargs):
@@ -117,6 +120,8 @@ def conjugate_method(f, x0, eps, lambda_b):
     b - лямбда для подсчета beta
     """
 
+    trajectory = [x0]
+
     k = 0
 
     x_prev = x0
@@ -126,11 +131,8 @@ def conjugate_method(f, x0, eps, lambda_b):
     grad = grad_prev = norm_gradient(f, x_k)
     d = -gradient(f, x_k)
 
-    while True:
-
+    while k < M:
         k += 1
-        if k >= M:
-            break
 
         x_prev = x_k
         x_k = x_next
@@ -147,13 +149,15 @@ def conjugate_method(f, x0, eps, lambda_b):
 
         x_next = x_k + t * d
 
-        if (norm(x_next - x_k) < eps) or (abs(f(*x_next) - f(*x_k)) < eps):
-            return x_k, k
+        trajectory.append(x_k)
+
+        if (norm(x_next - x_k) < eps) and (abs(f(*x_next) - f(*x_k)) < eps):
+            return trajectory
 
         # if (norm(grad) < eps):
         #     return x_k, k
 
-    return x_k, k
+    return trajectory
 
 
 def conjugate_gradient_method(f, x0, eps):
@@ -195,6 +199,8 @@ def newton_method(f, x0, eps):
     eps - требуемая точность
     """
 
+    trajectory = [x0]
+
     k = 0
     x = np.array(x0)
     prev_x = np.array([float("inf")] * len(x))
@@ -225,4 +231,6 @@ def newton_method(f, x0, eps):
         grad = gradient(f, x)
         k += 1
 
-    return x, k
+        trajectory.append(x)
+
+    return trajectory

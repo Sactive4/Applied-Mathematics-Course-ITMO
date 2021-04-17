@@ -10,4 +10,4 @@
 
 [Лабораторная работа №1](lab1/Lab1PrimatLunevSemenovSmirnov.pdf)
 
-[Лабораторная работа №2](lab1/Lab2PrimatLunevSemenovSmirnov.pdf)
+[Лабораторная работа №2](lab2/Lab2PrimatLunevSemenovSmirnov.pdf)

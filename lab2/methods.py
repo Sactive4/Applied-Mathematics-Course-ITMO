@@ -83,13 +83,7 @@ def reduce_until_monotonic(f, curr_x, grad, step):
     return step
 
 
-def lambda_const_checked(step):
-    return lambda f, curr_x, grad, **kwargs: reduce_until_monotonic(
-        f, curr_x, grad, step
-    )
-
-
-class LambdaRatioChecked:
+class LambdaRatio:
     def __init__(self, step, coef):
         self._curr_step = step
         self._coef = coef
@@ -101,15 +95,13 @@ class LambdaRatioChecked:
 
 
 def lambda_const(step):
-    return lambda **kwargs: step
+    return lambda f, curr_x, grad, **kwargs: reduce_until_monotonic(
+        f, curr_x, grad, step
+    )
 
 
 def lambda_ratio(step, coef):
-    return (
-        lambda prev_step, **kwargs: step
-        if prev_step == float("inf")
-        else coef * prev_step
-    )
+    return LambdaRatio(step, coef)
 
 
 def conjugate_method(f, x0, eps, lambda_b):

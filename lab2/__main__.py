@@ -1,4 +1,5 @@
 from methods import *
+from plot import plot_3d_with_trajectory
 
 
 def check_correct(x, answer, eps):
@@ -7,14 +8,17 @@ def check_correct(x, answer, eps):
             return False
     return True
 
-def print_correct(x, answer, eps, title):
-    if check_correct(x[0], answer, eps):
-        print("+ " + title + " " + str(x[1]))
+def print_correct(trajectory, answer, eps, title):
+    iter_count = len(trajectory) - 1
+    final_point = trajectory[-1]
+
+    if check_correct(final_point, answer, eps):
+        print("+", title, iter_count)
     else:
-        if x[1] == M:
-            print("-- " + title + " diverges")
+        if iter_count == M:
+            print("--", title, "diverges")
         else:
-            print("-- " + title + " " + str(x[1]))
+            print("--", title, iter_count)
 
 def test_function(fn, x, eps, step, alpha, answer):
     print_correct(gradient_method(fn, x, eps, lambda_const(step)), answer, eps, "CONST STEP")
@@ -40,5 +44,11 @@ test_function(fn2, np.array([200., 10.]), 0.001, 2., 0.75, np.array([100., 0.]))
 # gradient_method(fn, x, eps, lambda_ratio(step, alpha))
 
 
+# Примеры рисования графиков
 
+# tr1 = gradient_method(fn1, np.array([7., 5.]), 0.001, lambda_const_checked(0.5))
+# plot_3d_with_trajectory(fn1, tr1, -8, 8, -8, 8, title="CONST STEP CHECKED, fn1")
+
+# tr2 = gradient_method(fn2, np.array([200., 10.]), 0.001, lambda_const_checked(2))
+# plot_3d_with_trajectory(fn1, tr2, 95, 205, -50, 60, title="CONST STEP CHECKED, fn2")
 

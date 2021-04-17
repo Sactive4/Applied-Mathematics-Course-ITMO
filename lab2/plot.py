@@ -23,8 +23,8 @@ def plot_3d_with_trajectory(
     ax.set_ylabel("Y")
     ax.set_title(title)
 
-    x = np.linspace(x_left, x_right, (x_right - x_left) * resol)
-    y = np.linspace(y_left, y_right, (y_right - y_left) * resol)
+    x = np.linspace(x_left, x_right, int((x_right - x_left) * resol))
+    y = np.linspace(y_left, y_right, int((y_right - y_left) * resol))
     x, y = np.meshgrid(x, y)
     z = f(x, y)
 

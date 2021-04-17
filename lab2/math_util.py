@@ -1,5 +1,8 @@
-DIFF_STEP = 1 / 2 ** 20
+import mpmath as mp
+mp.dps = 7; mp.pretty = True
 
+DIFF_STEP = 1 / 2 ** 20
+DIFF_STEP = 0.001
 
 def partial_derivative(f, x, i):
     """Найти частную производную функции f в точке x по аргументу i
@@ -8,15 +11,10 @@ def partial_derivative(f, x, i):
     x - вектор координат точки, len(x) совпадает с числом параметров f
     i - номер координаты, по которой дифференцирование, 0 <= i < len(x)
     """
+    mask = [0] * len(x)
+    mask[i] = 1
 
-    x1 = x.copy()
-    x2 = x.copy()
-    x1[i] = x1[i] + DIFF_STEP
-    x2[i] = x1[i] - DIFF_STEP
-    f1 = f(*x1)
-    f2 = f(*x2)
-
-    return (f1 - f2) / (x1[i] - x2[i])
+    return mp.diff(f, x, mask)
 
 
 def second_partial_derivative(f, x, i1, i2):
@@ -28,14 +26,11 @@ def second_partial_derivative(f, x, i1, i2):
     i2 - вторая координата, по которой дифференцирование, 0 <= i < len(x)
     """
 
-    x1 = x.copy()
-    x2 = x.copy()
-    x1[i2] = x1[i2] + DIFF_STEP
-    x2[i2] = x1[i2] - DIFF_STEP
-    d1 = partial_derivative(f, x1, i1)
-    d2 = partial_derivative(f, x2, i1)
+    mask = [0] * len(x)
+    mask[i1] += 1
+    mask[i2] += 1
 
-    return (d1 - d2) / (x1[i2] - x2[i2])
+    return mp.diff(f, x, mask)
 
 
 def gradient(f, x):
@@ -59,7 +54,7 @@ def hessian_matrix(f, x):
     """
 
     return [
-        [second_partial_derivative(f, x, i, j) for j in range(len(x))]
+        [float(second_partial_derivative(f, x, i, j)) for j in range(len(x))]
         for i in range(len(x))
     ]
 

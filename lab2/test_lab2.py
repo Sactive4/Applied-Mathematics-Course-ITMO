@@ -99,13 +99,13 @@ def test_norm_gradient():
     expected = [1.0 / 3 ** (1 / 2)] * 3
 
     for actual_num, expected_num in zip(actual, expected):
-        assert isclose(actual_num, expected_num)
+        assert isclose(actual_num, expected_num, abs_tol=TOL)
 
     actual = norm_gradient(fn, np.array([1.0, 1.0, 1.0]))
     expected = [1.0 / 3 ** (1 / 2)] * 3
 
     for actual_num, expected_num in zip(actual, expected):
-        assert isclose(actual_num, expected_num)
+        assert isclose(actual_num, expected_num, abs_tol=TOL)
 
 
 def test_hessian_matrix():

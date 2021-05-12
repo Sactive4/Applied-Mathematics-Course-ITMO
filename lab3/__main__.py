@@ -88,6 +88,7 @@ def test_solving_function(fn):
     tests = [([[5,7,4], [9,5,7], [1,2,7]], [4,5,2], [63.0/235, 67.0/235, 39.0/235]),
              ([[0,0,0], [9,5,7], [1,2,7]], [4,5,2], None),
              ([[7,7,30], [4,7,9], [7,1,30]], [-6,6,3], [303.0/38, -3.0/2, -65.0/38])]
+    # генерация тестов https://abakbot.ru/online-16/313-gen-matrix-online
     for i in range(len(tests)):
         A, b, answer = tests[i]
         assert(system_solution(A, b), answer)

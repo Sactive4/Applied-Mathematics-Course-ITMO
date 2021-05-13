@@ -1,4 +1,6 @@
-
+import scipy
+import numpy
+from scipy.sparse import csr_matrix
 
 # ПУНКТ 1
 # LU-композиция
@@ -9,7 +11,7 @@
 # https://www.machinelearningmastery.ru/sparse-matrices-for-machine-learning/
 import time
 
-from lab3.math_util import identity_matrix, ascending_vector, generate_big_matrix, random_vector
+from lab3.math_util import empty_matrix, identity_matrix, ascending_vector, generate_big_matrix, random_vector
 
 
 def lu_decomposition(A):
@@ -29,8 +31,15 @@ def lu_decomposition(A):
     # https://en.wikipedia.org/wiki/LU_decomposition
     # конкретные формулы и реализация
     # https://www.quantstart.com/articles/LU-Decomposition-in-Python-and-NumPy/
+
+    N = len(A.toarray())
+    L = empty_matrix(N, N)
+    U = empty_matrix(N, N)
+
     return L, U
 
+A = scipy.sparse.csr_matrix([[2,0,4], [1,9,0], [2,0,1]])
+lu_decomposition(A)
 
 def trivial_system_solution(A, b, upper=True):
     """ Найти тривиальное решение уравнения Ax=B

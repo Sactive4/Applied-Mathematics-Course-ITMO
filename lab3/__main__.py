@@ -1,21 +1,25 @@
+# реализации разреженных матриц и введение
+# https://www.machinelearningmastery.ru/sparse-matrices-for-machine-learning/
+import time
+
 import scipy
-import numpy
-from scipy.sparse import csr_matrix
+
+from primathlab3.math_util import (
+    ascending_vector,
+    empty_matrix,
+    generate_big_matrix,
+    identity_matrix,
+    random_vector,
+)
 
 # ПУНКТ 1
 # LU-композиция
 # решение системы уравнений (LU + Гаусса)
 # обратная матрица
 
-# реализации разреженных матриц и введение
-# https://www.machinelearningmastery.ru/sparse-matrices-for-machine-learning/
-import time
-
-from math_util import empty_matrix, identity_matrix, ascending_vector, generate_big_matrix, random_vector
-
 
 def lu_decomposition(A):
-    """ Найти LU-разложение матрицы A
+    """Найти LU-разложение матрицы A
     A - матрица, хранящаяся в разреженном виде
     :returns
     (L, U) - пара матриц L и U в разреженном виде, где A = LU
@@ -38,11 +42,13 @@ def lu_decomposition(A):
 
     return L, U
 
-A = scipy.sparse.csr_matrix([[2,0,4], [1,9,0], [2,0,1]])
+
+A = scipy.sparse.csr_matrix([[2, 0, 4], [1, 9, 0], [2, 0, 1]])
 lu_decomposition(A)
 
+
 def trivial_system_solution(A, b, upper=True):
-    """ Найти тривиальное решение уравнения Ax=B
+    """Найти тривиальное решение уравнения Ax=B
     A - треугольная матрица, хранящаяся в разреженном виде
     b - вектор в правой части
     upper - если A верхнетреугольная True, нижнетреугольная - False
@@ -53,7 +59,7 @@ def trivial_system_solution(A, b, upper=True):
 
 
 def system_solution(A, b):
-    """ Найти решение системы Ax=b
+    """Найти решение системы Ax=b
     A - матрица, хранящаяся в разреженном виде
     b - вектор в правой части
     returns:
@@ -66,7 +72,7 @@ def system_solution(A, b):
 
 
 def system_solution_matrix(A, B):
-    """ Найти решение системы AX=B
+    """Найти решение системы AX=B
     A - матрица, хранящаяся в разреженном виде
     B - матрица, хранящаяся в разреженном виде
     returns:
@@ -80,7 +86,7 @@ def system_solution_matrix(A, B):
 
 
 def inverse_matrix(A):
-    """ Найти обратную для матрицы A
+    """Найти обратную для матрицы A
     A - матрица, хранящаяся в разреженном виде
     :returns
     A_inverse - обратная матрица в разреженном виде
@@ -94,14 +100,30 @@ def inverse_matrix(A):
 # ПУНКТ 2
 # Тестирование программы из п. 1
 
+
 def test_solving_function(fn):
-    tests = [([[5,7,4], [9,5,7], [1,2,7]], [4,5,2], [63.0/235, 67.0/235, 39.0/235]),
-             ([[0,0,0], [9,5,7], [1,2,7]], [4,5,2], None),
-             ([[7,7,30], [4,7,9], [7,1,30]], [-6,6,3], [303.0/38, -3.0/2, -65.0/38])]
+    tests = [
+        (
+            [[5, 7, 4], [9, 5, 7], [1, 2, 7]],
+            [4, 5, 2],
+            [63.0 / 235, 67.0 / 235, 39.0 / 235],
+        ),
+        (
+            [[0, 0, 0], [9, 5, 7], [1, 2, 7]],
+            [4, 5, 2],
+            None,
+        ),
+        (
+            [[7, 7, 30], [4, 7, 9], [7, 1, 30]],
+            [-6, 6, 3],
+            [303.0 / 38, -3.0 / 2, -65.0 / 38],
+        ),
+    ]
     # генерация тестов https://abakbot.ru/online-16/313-gen-matrix-online
     for i in range(len(tests)):
         A, b, answer = tests[i]
-        assert(system_solution(A, b), answer)
+        assert (system_solution(A, b), answer)
+
 
 test_solving_function(system_solution)
 # опционально: протестировать LU-разложение
@@ -111,8 +133,9 @@ test_solving_function(system_solution)
 # Методы решения СЛАУ Сейделя
 # P.S. в чате написано, что достаточно только одного метода
 
+
 def seidel_method(A, b):
-    """ Найти решение системы Ax=b методом Гаусса-Зейделя
+    """Найти решение системы Ax=b методом Гаусса-Зейделя
     A - матрица, хранящаяся в разреженном виде
     b - вектор в правой части
     returns:
@@ -122,6 +145,7 @@ def seidel_method(A, b):
 
     return x
 
+
 test_solving_function(seidel_method)
 
 
@@ -129,14 +153,15 @@ test_solving_function(seidel_method)
 # насколько я понимаю, используется метод из п. 3
 # оценка влияния увеличения числа обусловленности на точность решения
 
+
 def generate_test_equation(a, k):
-    """ Генерирует тестовое уравнение для решения
+    """Генерирует тестовое уравнение для решения
     :param A: квадратная матрица коэффициентов a_ij (см. лабу, а также чат - опечатка в лабе)
     :param k: номер уравнения в последовательности
     :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
     None - если уравнение несовместно
     """
-    A_k = [] # генерируется матрица по соотношению из лабы
+    A_k = []  # генерируется матрица по соотношению из лабы
     F_k = A_k * ascending_vector(A.размерность)
     if несовместна(A_k):
         return None
@@ -144,7 +169,7 @@ def generate_test_equation(a, k):
 
 
 def test_equations(fn, n):
-    """ Возвращает массив погрешностей для последовательности
+    """Возвращает массив погрешностей для последовательности
     :param fn: тестируемая функция генерации уравнений lambda k
     :param n: количество уравнений последовательности
     :return: массив размера n с погрешностью = max(x_1, x_2, ..., x_n)
@@ -159,7 +184,8 @@ def test_equations(fn, n):
         r.append(r_i)
     return r
 
-a = [[-2, -1, 0], [-7, -1, -9], [-3, -11, -2]] # например
+
+a = [[-2, -1, 0], [-7, -1, -9], [-3, -11, -2]]  # например
 r = test_equations(lambda k: generate_test_equation(a, k), 20)
 # todo: построить график для последовательности и обработать результат
 
@@ -167,13 +193,14 @@ r = test_equations(lambda k: generate_test_equation(a, k), 20)
 # ПУНКТ 5
 # исследования на матрицах Гильберта
 
+
 def generate_test_equation_hilbert(k):
-    """ Генерирует тестовое уравнение для решения с матрицей Гильберта
+    """Генерирует тестовое уравнение для решения с матрицей Гильберта
     :param k: номер уравнения в последовательности
     :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
     None - если уравнение несовместно
     """
-    A_k = [] # генерируется матрица по соотношению из лабы для гилберта
+    A_k = []  # генерируется матрица по соотношению из лабы для гилберта
     F_k = A_k * ascending_vector(A.размерность)
     if несовместна(A_k):
         return None
@@ -191,7 +218,7 @@ r = test_equations(generate_test_equation_hilbert, 20)
 
 
 def method_comparison(p):
-    """ Сравнить прямой и итерационный метод на матрицах
+    """Сравнить прямой и итерационный метод на матрицах
     разреженности p
     :param p: разреженность, т.е. отношение ненулевых клеток к nxn
     :return: [(t1, t2)] - массив пар с временем (у.е.) решения уравнений двумя методами
@@ -210,6 +237,7 @@ def method_comparison(p):
 
         r.append((t1, t2))
     return r
+
 
 # todo: построить график для последовательности и обработать результат
 

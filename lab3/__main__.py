@@ -29,7 +29,9 @@ def lu_decomposition(A):
     # https://en.wikipedia.org/wiki/LU_decomposition
     # конкретные формулы и реализация
     # https://www.quantstart.com/articles/LU-Decomposition-in-Python-and-NumPy/
-    return (L, U)
+
+
+    return L, U
 
 
 def trivial_system_solution(A, b, upper=True):

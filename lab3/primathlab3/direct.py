@@ -1,3 +1,5 @@
+import numpy as np
+
 from .math_util import empty_matrix, identity_matrix
 
 
@@ -30,14 +32,29 @@ def lu_decomposition(A):
 # lu_decomposition(A)
 
 
-def trivial_system_solution(A, b, upper=True):
+def lower_trivial_system_solution(A, b):
     """Найти тривиальное решение уравнения Ax=B
-    A - треугольная матрица, хранящаяся в разреженном виде
+    A - нижнетреугольная матрица, хранящаяся в разреженном виде
     b - вектор в правой части
-    upper - если A верхнетреугольная True, нижнетреугольная - False
-    throws
     """
-    # решение методом Гаусса (тривиальное)
+    x = np.zeros(len(b))
+    x[0] = b[0]
+
+    for i in range(1, len(b)):
+        x[i] = b[i] - sum((A[i, j] * x[j] for j in range(i + 1)))
+    return x
+
+
+def upper_trivial_system_solution(A, b):
+    """Найти тривиальное решение уравнения Ax=B
+    A - верхнетреугольная матрица, хранящаяся в разреженном виде
+    b - вектор в правой части
+    """
+    x = np.zeros(len(b))
+    x[-1] = b[-1]
+
+    for i in range(len(b) - 2, -1, -1):
+        x[i] = b[i] - sum((A[i, j] * x[j] for j in range(i, len(b))))
     return x
 
 
@@ -49,8 +66,8 @@ def system_solution(A, b):
     None - если решения не существует
     """
     L, U = lu_decomposition(A)
-    y = trivial_system_solution(L, b, False)
-    x = trivial_system_solution(U, y, True)
+    y = lower_trivial_system_solution(L, b)
+    x = upper_trivial_system_solution(U, y)
     return x
 
 

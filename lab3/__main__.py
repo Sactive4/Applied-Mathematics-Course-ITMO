@@ -11,7 +11,7 @@ from scipy.sparse import csr_matrix
 # https://www.machinelearningmastery.ru/sparse-matrices-for-machine-learning/
 import time
 
-from lab3.math_util import empty_matrix, identity_matrix, ascending_vector, generate_big_matrix, random_vector
+from math_util import empty_matrix, identity_matrix, ascending_vector, generate_big_matrix, random_vector
 
 
 def lu_decomposition(A):
@@ -74,7 +74,8 @@ def system_solution_matrix(A, B):
     """
     X = []
     for i in range(B.количество_столбцов):
-        X[i-ый столбец] = system_solution(A, B[i-ый столбец])
+        # i - индекс столбца
+        X[i] = system_solution(A, B[i])
     return X
 
 
@@ -137,7 +138,7 @@ def generate_test_equation(a, k):
     """
     A_k = [] # генерируется матрица по соотношению из лабы
     F_k = A_k * ascending_vector(A.размерность)
-    if (A_k несовместна):
+    if несовместна(A_k):
         return None
     return (A_k, F_k)
 
@@ -174,7 +175,7 @@ def generate_test_equation_hilbert(k):
     """
     A_k = [] # генерируется матрица по соотношению из лабы для гилберта
     F_k = A_k * ascending_vector(A.размерность)
-    if (A_k несовместна):
+    if несовместна(A_k):
         return None
     return (A_k, F_k)
 

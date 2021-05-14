@@ -45,11 +45,11 @@ def lower_trivial_system_solution(A, b):
     """
     x = np.zeros(len(b))
     x[0] = b[0]
+
     for i in range(1, len(b)):
-        # todo: оптимизировать суммы
-        x[i] = b[i] - sum(A[i, j] * x[j] for j in range(i))
-        #row = A[i].toarray()[0]
-        #x[i] = b[i] - sum(row * x)
+        row = A[i].toarray()[0]
+        x[i] = b[i] - sum(row * x)
+
     return x
 
 
@@ -63,15 +63,9 @@ def upper_trivial_system_solution(A, b):
     x[-1] = b[-1] / A[-1, -1]
 
     for i in reversed(range(N - 1)):
-        # todo: оптимизировать суммы
-        x[i] = 1.0 / A[i, i] * (b[i] - sum(A[i, j] * x[j] for j in range(i + 1, N)))
+        row = A[i].toarray()[0]
+        x[i] = (b[i] - sum(row * x)) / A[i, i]
 
-    # x = np.zeros(len(b))
-    # x[-1] = b[-1]
-    #
-    # for i in range(len(b) - 2, -1, -1):
-    #     row = A[i].toarray()[0]
-    #     x[i] = b[i] - sum(row * x)
     return x
 
 

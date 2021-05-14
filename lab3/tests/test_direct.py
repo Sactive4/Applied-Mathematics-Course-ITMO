@@ -46,8 +46,8 @@ def test_lu_decomposition():
 
 
 def test_upper_trivial_system_solution():
-    matrix = csr_matrix(np.array([[1, 2, 1], [0, 1, 2], [0, 0, 1]]))
-    vector = np.array([8, 4, 1])
+    matrix = csr_matrix(np.array([[2, 1, 1], [0, 3, 2], [0, 0, 7]]))
+    vector = np.array([9, 8, 7])
     expected = np.array([3, 2, 1])
 
     actual = upper_trivial_system_solution(matrix, vector)

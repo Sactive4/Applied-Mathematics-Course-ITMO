@@ -1,6 +1,14 @@
 import numpy
 import scipy.sparse
 
+def get(A, i, j):
+    """ Возвратить значение
+    :param A: sparse matrix
+    :param i: индекс строки
+    :param j: индекс столбца
+    :return: значение
+    """
+    return A.toarray()[i][j]
 
 def empty_matrix(n, m):
     """Пустой нулевой двумерный массив
@@ -46,3 +54,4 @@ def random_vector(n):
     :return: любой вектор x
     """
     return ascending_vector(n)
+

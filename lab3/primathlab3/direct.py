@@ -1,6 +1,4 @@
-import numpy
 import numpy as np
-import scipy.linalg, scipy.sparse
 
 from .math_util import empty_matrix, identity_matrix
 
@@ -69,20 +67,12 @@ def upper_trivial_system_solution(A, b):
 
 def system_solution(A, b):
     """Найти решение системы Ax=b
-    A - матрица, хранящаяся в разреженном виде
+    A - невырожденная матрица, хранящаяся в разреженном виде
     b - вектор в правой части
     returns:
     None - если решения не существует
     """
-    det = numpy.linalg.det(A.todense())
-    if det == 0.0:
-        return None
-
     L, U = lu_decomposition(A)
-    # A_l = A.toarray()
-    # L_l = L.toarray()
-    # U_l = U.toarray()
-    #P_r, L_r, U_r = scipy.linalg.lu(A.toarray())
     y = lower_trivial_system_solution(L, b)
     x = upper_trivial_system_solution(U, y)
     return x

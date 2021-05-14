@@ -41,7 +41,7 @@ def lower_trivial_system_solution(A, b):
     x[0] = b[0]
 
     for i in range(1, len(b)):
-        row = np.asarray(A[i].todense())[0]
+        row = A[i].toarray()[0]
         x[i] = b[i] - sum(row * x)
     return x
 
@@ -55,7 +55,7 @@ def upper_trivial_system_solution(A, b):
     x[-1] = b[-1]
 
     for i in range(len(b) - 2, -1, -1):
-        row = np.asarray(A[i].todense())[0]
+        row = A[i].toarray()[0]
         x[i] = b[i] - sum(row * x)
     return x
 

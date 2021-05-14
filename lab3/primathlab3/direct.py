@@ -24,8 +24,8 @@ def lu_decomposition(A):
     # https://www.quantstart.com/articles/LU-Decomposition-in-Python-and-NumPy/
 
     N = len(A.toarray())
-    L = identity_matrix(N)
-    U = empty_matrix(N, N)
+    L = identity_matrix(N).tolil()
+    U = empty_matrix(N, N).tolil()
 
     for i in range(N):
         for j in range(N):
@@ -34,11 +34,8 @@ def lu_decomposition(A):
             else:
                 L[i, j] = 1.0 / U[j, j] * (A[i, j] - sum(U[k, j] * L[i, k] for k in range(j)))
 
-    return L, U
+    return L.tocsr(), U.tocsr()
 
-
-# A = scipy.sparse.csr_matrix([[2, 0, 4], [1, 9, 0], [2, 0, 1]])
-# lu_decomposition(A)
 
 
 def lower_trivial_system_solution(A, b):

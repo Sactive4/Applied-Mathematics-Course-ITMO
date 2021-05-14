@@ -23,7 +23,7 @@ def lu_decomposition(A):
     # конкретные формулы и реализация
     # https://www.quantstart.com/articles/LU-Decomposition-in-Python-and-NumPy/
 
-    N = len(A.toarray())
+    N = A.shape()[0]
     L = identity_matrix(N).tolil()
     U = empty_matrix(N, N).tolil()
 

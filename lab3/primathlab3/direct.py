@@ -1,7 +1,8 @@
+import numpy
 import numpy as np
 import scipy.linalg
 
-from .math_util import empty_matrix, identity_matrix, get
+from .math_util import empty_matrix, identity_matrix
 
 
 def lu_decomposition(A):
@@ -23,14 +24,10 @@ def lu_decomposition(A):
     # https://www.quantstart.com/articles/LU-Decomposition-in-Python-and-NumPy/
 
     N = len(A.toarray())
-    L = empty_matrix(N, N)
+    L = identity_matrix(N)
     U = empty_matrix(N, N)
-    #print(get(A, 0, 0))
-    print(A[0, 0])
 
     for i in range(N):
-        L[i, i] = 1.0
-
         for j in range(N):
             if i <= j:
                 U[i, j] = A[i, j] - sum(U[k, j] * L[i, k] for k in range(i))
@@ -88,10 +85,14 @@ def system_solution(A, b):
     returns:
     None - если решения не существует
     """
+    det = numpy.linalg.det(A.todense())
+    if det == 0.0:
+        return None
+
     L, U = lu_decomposition(A)
-    A_l = A.toarray()
-    L_l = L.toarray()
-    U_l = U.toarray()
+    # A_l = A.toarray()
+    # L_l = L.toarray()
+    # U_l = U.toarray()
     #P_r, L_r, U_r = scipy.linalg.lu(A.toarray())
     y = lower_trivial_system_solution(L, b)
     x = upper_trivial_system_solution(U, y)

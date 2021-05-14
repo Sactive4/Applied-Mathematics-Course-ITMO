@@ -2,14 +2,19 @@
 # https://www.machinelearningmastery.ru/sparse-matrices-for-machine-learning/
 import time
 
+import numpy
 import scipy
 import scipy.sparse
+
+numpy.seterr(all='raise')
+import warnings
+warnings.simplefilter('error')
 
 from lab3.primathlab3.direct import system_solution
 from primathlab3.math_util import (
     ascending_vector,
     generate_big_matrix,
-    random_vector,
+    random_vector, equals,
 )
 
 # ПУНКТ 1
@@ -42,10 +47,15 @@ def test_solving_function(fn):
         ),
     ]
     # генерация тестов https://abakbot.ru/online-16/313-gen-matrix-online
+    print("Тестируем решение СЛАУ с помощью LU-разложения")
     for i in range(len(tests)):
         A, b, answer = tests[i]
         x = system_solution(scipy.sparse.csr_matrix(A), b)
-        assert(system_solution(scipy.sparse.csr_matrix(A), b) == answer)
+        if (answer == None):
+            assert(x == answer)
+        else:
+            assert(equals(x, numpy.array(answer), 0.00001))
+        print("Test " + str(i) + " OK")
 
 
 test_solving_function(system_solution)

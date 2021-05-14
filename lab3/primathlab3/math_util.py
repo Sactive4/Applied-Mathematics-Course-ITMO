@@ -1,14 +1,18 @@
 import numpy
 import scipy.sparse
 
-def get(A, i, j):
-    """ Возвратить значение
-    :param A: sparse matrix
-    :param i: индекс строки
-    :param j: индекс столбца
-    :return: значение
+def equals(a, b, eps):
     """
-    return A.toarray()[i][j]
+    сравнить numpy вектора с точностью eps
+    """
+    if (a is None) and (b is None):
+        return True
+    if (a is None) or (b is None):
+        return False
+    for i in range(a.size):
+        if abs(a[i] - b[i]) > eps:
+            return False
+    return True
 
 def empty_matrix(n, m):
     """Пустой нулевой двумерный массив

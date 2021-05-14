@@ -30,10 +30,11 @@ def lu_decomposition(A):
             if i <= j:
                 U[i, j] = A[i, j] - sum(U[k, j] * L[i, k] for k in range(i))
             else:
-                L[i, j] = 1.0 / U[j, j] * (A[i, j] - sum(U[k, j] * L[i, k] for k in range(j)))
+                L[i, j] = (
+                    1.0 / U[j, j] * (A[i, j] - sum(U[k, j] * L[i, k] for k in range(j)))
+                )
 
     return L.tocsr(), U.tocsr()
-
 
 
 def lower_trivial_system_solution(A, b):
@@ -76,29 +77,6 @@ def system_solution(A, b):
     y = lower_trivial_system_solution(L, b)
     x = upper_trivial_system_solution(U, y)
     return x
-
-
-def system_solution_matrix(A, B):
-    """Найти решение системы AX=B
-    A - матрица, хранящаяся в разреженном виде
-    B - матрица, хранящаяся в разреженном виде
-    returns:
-    X - решение-матрица в разреженном виде
-    """
-    N = A.shape[0]
-    X = empty_matrix(N, N).tolil()
-    for i in range(N):
-        X[i] = system_solution(A, B.getcol(i).toarray())
-    return X.tocsr().transpose()
-
-
-def inverse_matrix(A):
-    """Найти обратную для матрицы A
-    A - матрица, хранящаяся в разреженном виде
-    :returns
-    A_inverse - обратная матрица в разреженном виде
-    """
-    return system_solution_matrix(A, identity_matrix(A.shape[0]))
 
 
 ### Обратите внимание!

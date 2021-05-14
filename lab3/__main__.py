@@ -10,7 +10,7 @@ numpy.seterr(all='raise')
 import warnings
 warnings.simplefilter('error')
 
-from lab3.primathlab3.direct import system_solution
+from lab3.primathlab3.direct import system_solution, inverse_matrix
 from primathlab3.math_util import (
     ascending_vector,
     generate_big_matrix,
@@ -179,5 +179,39 @@ test_solving_function(system_solution)
 #
 # # уже реализовано в первом пункте
 #
+
+def test_inverse_matrix_function(fn):
+    tests = [
+        (
+            [[2, 5, 7], [6, 3, 4], [5, -2, -3]],
+            [[1, -1, 1], [-38, 41, -34], [27, -29, 24]]
+        ),
+        (
+            [[1.0, 2.0, 3.0], [3.0, 2.0, 1.0], [0.0, 1.0, 0.0]],
+            [[-1.0/8, 3.0/8, -1.0/2], [0.0, 0.0, 1.0], [3.0/8, -1.0/8, -1.0/2]]
+        ),
+        (
+            [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+        )
+    ]
+    # генерация тестов https://abakbot.ru/online-16/313-gen-matrix-online
+    print("Тестируем обратные матрицы с помощью LU-разложения")
+    for i in range(len(tests)):
+        A, B = tests[i]
+        x = inverse_matrix(scipy.sparse.csr_matrix(A))
+        #print(numpy.array(B))
+        #print(x.toarray())
+        # difference = scipy.sparse.csr_matrix(B) != x
+        N = len(B)
+        for j in range(N):
+            for k in range(N):
+                assert(abs(B[j][k] - x[j, k]) < 0.0001)
+                #assert(difference[j, k])
+        print("Test " + str(i) + " OK")
+
+
+test_inverse_matrix_function(inverse_matrix)
+
 # # todo: протестировать обратную матрицу
 # # inverse_matrix(A)

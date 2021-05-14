@@ -47,8 +47,7 @@ def lower_trivial_system_solution(A, b):
     x[0] = b[0]
 
     for i in range(1, len(b)):
-        row = A[i].toarray()[0]
-        x[i] = b[i] - sum(row * x)
+        x[i] = b[i] - A[i] * x
 
     return x
 
@@ -63,8 +62,7 @@ def upper_trivial_system_solution(A, b):
     x[-1] = b[-1] / A[-1, -1]
 
     for i in reversed(range(N - 1)):
-        row = A[i].toarray()[0]
-        x[i] = (b[i] - sum(row * x)) / A[i, i]
+        x[i] = (b[i] - A[i] * x) / A[i, i]
 
     return x
 

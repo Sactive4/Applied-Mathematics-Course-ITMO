@@ -27,39 +27,7 @@ from primathlab3.math_util import (
 # ПУНКТ 2
 # Тестирование программы из п. 1
 
-
-def test_solving_function(fn):
-    tests = [
-        (
-            [[5, 7, 4], [9, 5, 7], [1, 2, 7]],
-            [4, 5, 2],
-            [63.0 / 235, 67.0 / 235, 39.0 / 235],
-        ),
-        # (
-        #     [[0, 0, 0], [9, 5, 7], [1, 2, 7]],
-        #     [4, 5, 2],
-        #     None,
-        # ),
-        (
-            [[7, 7, 30], [4, 7, 9], [7, 1, 30]],
-            [-6, 6, 3],
-            [303.0 / 38, -3.0 / 2, -65.0 / 38],
-        ),
-    ]
-    # генерация тестов https://abakbot.ru/online-16/313-gen-matrix-online
-    print("Тестируем решение СЛАУ с помощью LU-разложения")
-    for i in range(len(tests)):
-        A, b, answer = tests[i]
-        x = system_solution(scipy.sparse.csr_matrix(A), b)
-        if (answer == None):
-            assert(x == answer)
-        else:
-            assert(equals(x, numpy.array(answer), 0.00001))
-        print("Test " + str(i) + " OK")
-
-
-test_solving_function(system_solution)
-# опционально: протестировать LU-разложение
+# См. tests/test_direct.py
 
 #
 # # ПУНКТ 3

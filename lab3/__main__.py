@@ -6,9 +6,12 @@ import numpy
 import scipy
 import scipy.sparse
 
+from lab3.primathlab3.iteration_method import seidel_method
+
 numpy.seterr(all='raise')
 import warnings
 warnings.simplefilter('error')
+
 
 from primathlab3.math_util import (
     ascending_vector,
@@ -46,7 +49,6 @@ from primathlab3.math_util import (
 #     return x
 #
 #
-# test_solving_function(seidel_method)
 #
 #
 # # ПУНКТ 4
@@ -54,7 +56,7 @@ from primathlab3.math_util import (
 # # оценка влияния увеличения числа обусловленности на точность решения
 #
 #
-# def generate_test_equation(a, k):
+# def generate_test_equation(a, k, n):
 #     """Генерирует тестовое уравнение для решения
 #     :param A: квадратная матрица коэффициентов a_ij (см. лабу, а также чат - опечатка в лабе)
 #     :param k: номер уравнения в последовательности

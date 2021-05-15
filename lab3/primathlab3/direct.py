@@ -27,12 +27,12 @@ def lu_decomposition(A):
 
     for i in range(N):
         for j in range(N):
+            num = A[i, j] - sum(U[k, j] * L[i, k] for k in range(i))
+
             if i <= j:
-                U[i, j] = A[i, j] - sum(U[k, j] * L[i, k] for k in range(i))
+                U[i, j] = num
             else:
-                L[i, j] = (
-                    1.0 / U[j, j] * (A[i, j] - sum(U[k, j] * L[i, k] for k in range(j)))
-                )
+                L[i, j] = num / U[j, j]
 
     return L.tocsr(), U.tocsr()
 

@@ -6,7 +6,7 @@ import numpy
 import scipy
 import scipy.sparse
 
-from lab3.primathlab3.iteration_method import seidel_method
+from primathlab3.iteration_method import seidel_method
 
 numpy.seterr(all='raise')
 import warnings
@@ -16,7 +16,7 @@ warnings.simplefilter('error')
 from primathlab3.math_util import (
     ascending_vector,
     generate_big_matrix,
-    random_vector, equals,
+    random_vector, equals, empty_matrix,
 )
 
 # ПУНКТ 1
@@ -50,6 +50,7 @@ from primathlab3.math_util import (
 #
 #
 #
+<<<<<<< HEAD
 #
 # # ПУНКТ 4
 # # насколько я понимаю, используется метод из п. 3
@@ -113,6 +114,83 @@ from primathlab3.math_util import (
 # # todo: построить график для последовательности и обработать результат
 #
 #
+=======
+
+
+# ПУНКТ 4
+# насколько я понимаю, используется метод из п. 3
+# оценка влияния увеличения числа обусловленности на точность решения
+
+
+def generate_test_equation(a, k, n):
+    """Генерирует тестовое уравнение для решения
+    :param A: квадратная матрица коэффициентов a_ij (см. лабу, а также отчет)
+    :param k: номер уравнения в последовательности
+    :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
+    None - если уравнение несовместно
+    """
+    A_k = empty_matrix(n, n).tolil()
+    for i in range(n):
+        t = -1.0 * sum(a[i][k] for k in range(n))
+        for j in range(n):
+            if i != j:
+                A_k[i, j] = t
+            else:
+                A_k[i, j] = t + pow(10.0, -1.0 * k)
+    A_k = A_k.tocsr()
+    F_k = A_k.dot(ascending_vector(n))
+    return A_k, F_k
+
+
+def test_equations(fn, n):
+    """Возвращает массив погрешностей для последовательности
+    :param fn: тестируемая функция генерации уравнений lambda k
+    :param n: количество уравнений последовательности
+    :return: массив размера n с погрешностью = max(x_1, x_2, ..., x_n)
+    где x_i - погрешность между точным решением и решением метода ??? (наверное, так)
+    """
+    r = []
+    for i in range(n):
+        A, F = fn(i)
+        left = system_solution(A, F)
+        right = seidel_method(A, F, 0.001)
+        r_i = 0.0
+        for j in range(len(left.shape[0])):
+            r_i = max(r_i, abs(left[j] - right[j]))
+        r.append(r_i)
+    return r
+
+
+a = [[-2, -1, 0], [-7, -1, -9], [-3, -11, -2]]  # например
+r = test_equations(lambda k: generate_test_equation(a, k, len(a)), 7)
+# todo: построить график для последовательности и обработать результат
+
+
+
+# ПУНКТ 5
+# исследования на матрицах Гильберта
+
+
+def generate_test_equation_hilbert(k):
+    """Генерирует тестовое уравнение для решения с матрицей Гильберта
+    :param k: номер уравнения в последовательности
+    :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
+    None - если уравнение несовместно
+    """
+    A_k = empty_matrix(k, k).tolil()
+    for i in range(k):
+        for j in range(k):
+            A_k[i, j] = 1.0 / (i + j + 1.0)
+
+    F_k = A_k.multilpy(ascending_vector(k))
+    return A_k, F_k
+
+
+r = test_equations(generate_test_equation_hilbert, 20)
+# todo: построить график для последовательности и обработать результат
+
+
+>>>>>>> 6ac1c38fa27d21355f48a9caf0795bb095523107
 # # ПУНКТ 6
 # # сравнение прямого и итерационного метода
 # # прямой - system_solution(A, b)

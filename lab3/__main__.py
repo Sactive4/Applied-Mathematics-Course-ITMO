@@ -8,6 +8,7 @@ import scipy.sparse
 
 from primathlab3.iteration_method import seidel_method
 
+
 numpy.seterr(all='raise')
 import warnings
 warnings.simplefilter('error')
@@ -18,6 +19,12 @@ from primathlab3.math_util import (
     generate_big_matrix,
     random_vector, equals, empty_matrix,
 )
+
+
+seidel_method(scipy.sparse.csr_matrix([[5, 7, 4], [9, 5, 7], [1, 2, 7]]),
+            numpy.array([4, 5, 2]),
+            10e-6)
+# [63.0 / 235, 67.0 / 235, 39.0 / 235]
 
 # ПУНКТ 1
 # LU-композиция
@@ -55,6 +62,9 @@ from primathlab3.math_util import (
 # # насколько я понимаю, используется метод из п. 3
 # # оценка влияния увеличения числа обусловленности на точность решения
 #
+
+ite
+
 #
 # def generate_test_equation(a, k, n):
 #     """Генерирует тестовое уравнение для решения

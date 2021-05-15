@@ -17,7 +17,7 @@ def seidel_method(A, b, eps):
     while not converge:
         x_new = np.copy(x)
         for i in range(n):
-            s1 = sum(A[i][j] * x_new[j] for j in ranger(i))
+            s1 = sum(A[i][j] * x_new[j] for j in range(i))
             s2 = sum(A[i][j] * x[j] for j in range(i + 1, n))
             x_new[i] = (b[i] - s1 - s2) / A[i][i]
 

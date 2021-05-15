@@ -1,18 +1,6 @@
-import numpy
+import numpy as np
 import scipy.sparse
 
-def equals(a, b, eps):
-    """
-    сравнить numpy вектора с точностью eps
-    """
-    if (a is None) and (b is None):
-        return True
-    if (a is None) or (b is None):
-        return False
-    for i in range(a.size):
-        if abs(a[i] - b[i]) > eps:
-            return False
-    return True
 
 def empty_matrix(n, m):
     """Пустой нулевой двумерный массив
@@ -36,10 +24,7 @@ def ascending_vector(n):
     :param n: размерность
     :return: вектора вида (1, 2, ..., n)
     """
-    x = numpy.empty(n)
-    for i in range(n):
-        x[i] = i + 1
-    return x
+    return np.array(list(range(1, n + 1)))
 
 
 def generate_big_matrix(n, p):

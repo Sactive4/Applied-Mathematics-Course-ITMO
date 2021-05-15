@@ -8,7 +8,7 @@ import scipy.sparse
 
 from primathlab3.iteration_method import seidel_method
 
-from lab3.primathlab3.direct import system_solution
+from primathlab3.direct import system_solution
 
 numpy.seterr(all='raise')
 import warnings
@@ -18,16 +18,23 @@ warnings.simplefilter('error')
 from primathlab3.math_util import (
     ascending_vector,
     generate_big_matrix,
-    random_vector, equals, empty_matrix,
+    random_vector, empty_matrix,
 )
 
 
 
 # system_solution(scipy.sparse.csr_matrix([[5, 7, 4], [9, 5, 7], [1, 2, 7]]),
 #             numpy.array([4, 5, 2]))
-seidel_method(scipy.sparse.csr_matrix([[5, 7, 4], [9, 5, 7], [1, 2, 7]]),
-            numpy.array([4, 5, 2]),
+# res = seidel_method(scipy.sparse.csr_matrix([[5, 7, 4], [9, 5, 7], [1, 2, 7]]),
+#             numpy.array([4, 5, 2]),
+#             10e-6)
+
+
+res = seidel_method(scipy.sparse.csr_matrix(numpy.array([[2, 1, 1], [0, 3, 2], [0, 0, 7]])),
+            numpy.array([9, 8, 7]),
             10e-6)
+
+print(res)
 
 exit()
 # [63.0 / 235, 67.0 / 235, 39.0 / 235]
@@ -134,23 +141,27 @@ exit()
 # оценка влияния увеличения числа обусловленности на точность решения
 
 
-def generate_test_equation(a, k, n):
+def generate_test_equation(a, k):
     """Генерирует тестовое уравнение для решения
-    :param A: квадратная матрица коэффициентов a_ij (см. лабу, а также отчет)
+    :param a: квадратная матрица коэффициентов a_ij (см. лабу, а также отчет)
     :param k: номер уравнения в последовательности
     :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
     None - если уравнение несовместно
     """
+    n = len(a)
     A_k = empty_matrix(n, n).tolil()
+
     for i in range(n):
-        t = -1.0 * sum(a[i][k] for k in range(n))
+        t = -sum(a[i][k] for k in range(n))
         for j in range(n):
             if i != j:
                 A_k[i, j] = t
             else:
-                A_k[i, j] = t + pow(10.0, -1.0 * k)
+                A_k[i, j] = t + pow(10.0, -k)
+    
     A_k = A_k.tocsr()
     F_k = A_k.dot(ascending_vector(n))
+    
     return A_k, F_k
 
 
@@ -174,7 +185,7 @@ def test_equations(fn, n):
 
 
 a = [[-2, -1, 0], [-7, -1, -9], [-3, -11, -2]]  # например
-r = test_equations(lambda k: generate_test_equation(a, k, len(a)), 7)
+r = test_equations(lambda k: generate_test_equation(a, k), 7)
 # todo: построить график для последовательности и обработать результат
 
 

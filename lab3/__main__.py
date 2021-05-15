@@ -10,7 +10,6 @@ numpy.seterr(all='raise')
 import warnings
 warnings.simplefilter('error')
 
-from lab3.primathlab3.direct import system_solution, inverse_matrix
 from primathlab3.math_util import (
     ascending_vector,
     generate_big_matrix,
@@ -27,39 +26,7 @@ from primathlab3.math_util import (
 # ПУНКТ 2
 # Тестирование программы из п. 1
 
-
-def test_solving_function(fn):
-    tests = [
-        (
-            [[5, 7, 4], [9, 5, 7], [1, 2, 7]],
-            [4, 5, 2],
-            [63.0 / 235, 67.0 / 235, 39.0 / 235],
-        ),
-        (
-            [[0, 0, 0], [9, 5, 7], [1, 2, 7]],
-            [4, 5, 2],
-            None,
-        ),
-        (
-            [[7, 7, 30], [4, 7, 9], [7, 1, 30]],
-            [-6, 6, 3],
-            [303.0 / 38, -3.0 / 2, -65.0 / 38],
-        ),
-    ]
-    # генерация тестов https://abakbot.ru/online-16/313-gen-matrix-online
-    print("Тестируем решение СЛАУ с помощью LU-разложения")
-    for i in range(len(tests)):
-        A, b, answer = tests[i]
-        x = system_solution(scipy.sparse.csr_matrix(A), b)
-        if (answer == None):
-            assert(x == answer)
-        else:
-            assert(equals(x, numpy.array(answer), 0.00001))
-        print("Test " + str(i) + " OK")
-
-
-test_solving_function(system_solution)
-# опционально: протестировать LU-разложение
+# См. tests/test_direct.py
 
 #
 # # ПУНКТ 3
@@ -174,44 +141,9 @@ test_solving_function(system_solution)
 #
 # # todo: построить график для последовательности и обработать результат
 #
-# # ПУНКТ 7
-# # реализация поиска обратной матрицы
-#
-# # уже реализовано в первом пункте
-#
 
-def test_inverse_matrix_function(fn):
-    tests = [
-        (
-            [[2, 5, 7], [6, 3, 4], [5, -2, -3]],
-            [[1, -1, 1], [-38, 41, -34], [27, -29, 24]]
-        ),
-        (
-            [[1.0, 2.0, 3.0], [3.0, 2.0, 1.0], [0.0, 1.0, 0.0]],
-            [[-1.0/8, 3.0/8, -1.0/2], [0.0, 0.0, 1.0], [3.0/8, -1.0/8, -1.0/2]]
-        ),
-        (
-            [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
-            [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-        )
-    ]
-    # генерация тестов https://abakbot.ru/online-16/313-gen-matrix-online
-    print("Тестируем обратные матрицы с помощью LU-разложения")
-    for i in range(len(tests)):
-        A, B = tests[i]
-        x = inverse_matrix(scipy.sparse.csr_matrix(A))
-        #print(numpy.array(B))
-        #print(x.toarray())
-        # difference = scipy.sparse.csr_matrix(B) != x
-        N = len(B)
-        for j in range(N):
-            for k in range(N):
-                assert(abs(B[j][k] - x[j, k]) < 0.0001)
-                #assert(difference[j, k])
-        print("Test " + str(i) + " OK")
+# ПУНКТ 7
+# реализация поиска обратной матрицы
 
+# См. inverse.py, test_inverse.py
 
-test_inverse_matrix_function(inverse_matrix)
-
-# # todo: протестировать обратную матрицу
-# # inverse_matrix(A)

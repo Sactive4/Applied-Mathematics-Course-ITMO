@@ -6,6 +6,9 @@ import numpy
 import scipy
 import scipy.sparse
 
+from lab3.primathlab3.direct import system_solution
+from lab3.primathlab3.iteration_method import seidel_method
+
 numpy.seterr(all='raise')
 import warnings
 warnings.simplefilter('error')
@@ -62,15 +65,16 @@ def generate_test_equation(a, k, n):
     :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
     None - если уравнение несовместно
     """
-    A_k = empty_matrix(k, k).tolil()
+    A_k = empty_matrix(n, n).tolil()
     for i in range(n):
-        t = -1.0 * sum(A_k[i, k] for k in range(n))
+        t = -1.0 * sum(a[i][k] for k in range(n))
         for j in range(n):
             if i != j:
                 A_k[i, j] = t
             else:
                 A_k[i, j] = t + pow(10.0, -1.0 * k)
-    F_k = A_k.multilpy(ascending_vector(k))
+    A_k = A_k.tocsr()
+    F_k = A_k.dot(ascending_vector(n))
     return A_k, F_k
 
 
@@ -83,16 +87,18 @@ def test_equations(fn, n):
     """
     r = []
     for i in range(n):
-        x = fn(i)
+        A, F = fn(i)
+        left = system_solution(A, F)
+        right = seidel_method(A, F, 0.001)
         r_i = 0.0
-        for j in range(len(x)):
-            r_i = max(r_i, x[j])
+        for j in range(len(left.shape[0])):
+            r_i = max(r_i, abs(left[j] - right[j]))
         r.append(r_i)
     return r
 
 
 a = [[-2, -1, 0], [-7, -1, -9], [-3, -11, -2]]  # например
-r = test_equations(lambda k: generate_test_equation(a, k), 20)
+r = test_equations(lambda k: generate_test_equation(a, k, len(a)), 7)
 # todo: построить график для последовательности и обработать результат
 
 

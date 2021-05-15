@@ -8,6 +8,7 @@ import scipy.sparse
 
 from primathlab3.iteration_method import seidel_method
 
+from lab3.primathlab3.direct import system_solution
 
 numpy.seterr(all='raise')
 import warnings
@@ -21,9 +22,14 @@ from primathlab3.math_util import (
 )
 
 
+
+# system_solution(scipy.sparse.csr_matrix([[5, 7, 4], [9, 5, 7], [1, 2, 7]]),
+#             numpy.array([4, 5, 2]))
 seidel_method(scipy.sparse.csr_matrix([[5, 7, 4], [9, 5, 7], [1, 2, 7]]),
             numpy.array([4, 5, 2]),
             10e-6)
+
+exit()
 # [63.0 / 235, 67.0 / 235, 39.0 / 235]
 
 # ПУНКТ 1
@@ -62,8 +68,6 @@ seidel_method(scipy.sparse.csr_matrix([[5, 7, 4], [9, 5, 7], [1, 2, 7]]),
 # # насколько я понимаю, используется метод из п. 3
 # # оценка влияния увеличения числа обусловленности на точность решения
 #
-
-ite
 
 #
 # def generate_test_equation(a, k, n):
@@ -163,7 +167,7 @@ def test_equations(fn, n):
         left = system_solution(A, F)
         right = seidel_method(A, F, 0.001)
         r_i = 0.0
-        for j in range(len(left.shape[0])):
+        for j in range(left.shape[0]):
             r_i = max(r_i, abs(left[j] - right[j]))
         r.append(r_i)
     return r
@@ -190,8 +194,8 @@ def generate_test_equation_hilbert(k):
         for j in range(k):
             A_k[i, j] = 1.0 / (i + j + 1.0)
 
-    F_k = A_k.multilpy(ascending_vector(k))
-    return A_k, F_k
+    F_k = A_k.dot(ascending_vector(k))
+    return A_k.tocsr(), F_k
 
 
 r = test_equations(generate_test_equation_hilbert, 20)

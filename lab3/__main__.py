@@ -50,7 +50,6 @@ from primathlab3.math_util import (
 #
 #
 #
-<<<<<<< HEAD
 #
 # # ПУНКТ 4
 # # насколько я понимаю, используется метод из п. 3
@@ -114,7 +113,6 @@ from primathlab3.math_util import (
 # # todo: построить график для последовательности и обработать результат
 #
 #
-=======
 
 
 # ПУНКТ 4
@@ -189,8 +187,6 @@ def generate_test_equation_hilbert(k):
 r = test_equations(generate_test_equation_hilbert, 20)
 # todo: построить график для последовательности и обработать результат
 
-
->>>>>>> 6ac1c38fa27d21355f48a9caf0795bb095523107
 # # ПУНКТ 6
 # # сравнение прямого и итерационного метода
 # # прямой - system_solution(A, b)

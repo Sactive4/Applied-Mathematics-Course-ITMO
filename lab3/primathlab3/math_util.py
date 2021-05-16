@@ -2,21 +2,22 @@ import numpy as np
 import scipy.sparse
 
 
-def empty_matrix(n, m):
+def empty_matrix(n, m, format):
     """Пустой нулевой двумерный массив
     :param n: количество строк
     :param m: количество столбцов
     :return: python array
     """
-    return scipy.sparse.csr_matrix((n, m))
+    Matrix = scipy.sparse.__dict__[format + "_matrix"]
+    return Matrix((n, m))
 
 
-def identity_matrix(n):
+def identity_matrix(n, format):
     """Единичная матрица размера n в разреженном виде
     :param n: размерность матрицы nxn
     :return: матрица E
     """
-    return scipy.sparse.identity(n, format="csr")
+    return scipy.sparse.identity(n, format=format)
 
 
 def ascending_vector(n):

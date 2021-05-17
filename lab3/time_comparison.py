@@ -52,6 +52,28 @@ def generate_hilbert_matrix(k):
 
     return A_k.tocsr()
 
+def test_equations(A, F):
+    """Возвращает сумму погрешностей для последовательности
+    :param fn: тестируемая функция генерации уравнений lambda k
+    :param n: количество уравнений последовательности
+    :return: массив размера n с погрешностью = max(x_1, x_2, ..., x_n)
+    где x_i - погрешность между точным решением и решением метода ???
+    """
+    r = []
+    sum = 0.0
+
+    for i in range(n):
+
+        left = iteration_method.seidel_method(A, F)
+        right = direct.system_solution(A, F)
+        r_i = 0.0
+        for j in range(left.shape[0]):
+            r_i = max(r_i, abs(left[j] - right[j]))
+        r.append(r_i)
+
+        sum += r_i
+    return r
+
 def gen_test_data(n, p=0.3):
     # Различные способы генерации матриц
     matrix = gen_nonsingular_matrix(n, p).tocsr()

@@ -60,19 +60,13 @@ def test_equations(A, F):
     где x_i - погрешность между точным решением и решением метода ???
     """
 
-    r = []
     sum = 0.0
+    left = iteration_method.seidel_method(A, F)
+    right = direct.system_solution(A, F)
 
-    for i in range(n):
+    for i in range(left.shape[0]):
+        sum = abs(right[i] - left[i])
 
-        left = iteration_method.seidel_method(A, F)
-        right = direct.system_solution(A, F)
-        r_i = 0.0
-        for j in range(left.shape[0]):
-            r_i = max(r_i, abs(left[j] - right[j]))
-        r.append(r_i)
-
-        sum += r_i
     return sum
 
 def gen_test_data(n, p=0.3):

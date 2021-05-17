@@ -73,7 +73,7 @@ def test_equations(A, F):
         r.append(r_i)
 
         sum += r_i
-    return r
+    return sum
 
 def gen_test_data(n, p=0.3):
     # Различные способы генерации матриц

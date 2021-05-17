@@ -53,7 +53,8 @@ def generate_hilbert_matrix(k):
     return A_k.tocsr()
 
 def test_equations(A, F):
-    """Возвращает сумму погрешностей для последовательности"""
+    """Возвращает сумму погрешностей между
+    найденными значениями для двух методов"""
 
     sum = 0.0
     left = iteration_method.seidel_method(A, F)

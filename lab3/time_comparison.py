@@ -1,13 +1,16 @@
-from primathlab3 import direct
-from primathlab3.math_util import generate_big_matrix, random_vector
+from itertools import count
 from timeit import timeit
+
 from scipy.sparse import linalg
+
+from primathlab3 import direct, iteration_method
+from primathlab3.math_util import generate_big_matrix, random_vector
 
 
 def gen_nonsingular_matrix(n, p):
-    matrix = generate_big_matrix(n, p).tolil()
+    matrix = generate_big_matrix(n, p, "lil")
     for i in range(n):
-        matrix[i, i] += 1
+        matrix[i, i] += 1000
     return matrix
 
 
@@ -28,11 +31,12 @@ def scipy_solver(matrix, vector):
 
 
 if __name__ == "__main__":
-    print(f'{"n":<5} {"direct_exe_time":<15} {"scipy_exe_time":<15}')
+    solver = iteration_method.seidel_method
 
-    for exp in range(1, 7):
+    print("n, execution_time")
+
+    for exp in count(1):
         n = 10 ** exp
-        matrix, vector = gen_test_data(n)
-        direct_exe_time = test_exe_time(direct.system_solution, matrix, vector)
-        scipy_exe_time = test_exe_time(scipy_solver, matrix.tocsc(), vector)
-        print(f'{n:<5} {direct_exe_time:<15.10f} {scipy_exe_time:<15.10f}')
+        matrix, vector = gen_test_data(n, p=0.01)
+        exe_time = test_exe_time(solver, matrix, vector)
+        print(n, exe_time, sep=", ")

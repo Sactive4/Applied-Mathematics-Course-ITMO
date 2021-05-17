@@ -1,12 +1,26 @@
 import numpy as np
 import pytest
 from primathlab3.direct import (
+    csr_row_iter,
     lower_trivial_system_solution,
     lu_decomposition,
     system_solution,
     upper_trivial_system_solution,
 )
 from scipy.sparse import csr_matrix
+
+
+# TODO:
+# def test_lil_row_product():
+#     pass
+
+
+def test_csr_row_iter():
+    expected_vals = [0, 0, 1, 2, 0, 3, 0, 0]
+    matrix = csr_matrix([expected_vals])
+    row_gen = csr_row_iter(matrix, 0)
+    actual_vals = list(row_gen)
+    assert actual_vals == expected_vals
 
 
 def test_lu_decomposition():

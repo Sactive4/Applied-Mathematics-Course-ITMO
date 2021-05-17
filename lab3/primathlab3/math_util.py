@@ -2,21 +2,22 @@ import numpy as np
 import scipy.sparse
 
 
-def empty_matrix(n, m):
+def empty_matrix(n, m, format):
     """Пустой нулевой двумерный массив
     :param n: количество строк
     :param m: количество столбцов
     :return: python array
     """
-    return scipy.sparse.csr_matrix((n, m))
+    Matrix = scipy.sparse.__dict__[format + "_matrix"]
+    return Matrix((n, m))
 
 
-def identity_matrix(n):
+def identity_matrix(n, format):
     """Единичная матрица размера n в разреженном виде
     :param n: размерность матрицы nxn
     :return: матрица E
     """
-    return scipy.sparse.identity(n, format="csr")
+    return scipy.sparse.identity(n, format=format)
 
 
 def ascending_vector(n):
@@ -27,13 +28,13 @@ def ascending_vector(n):
     return np.array(list(range(1, n + 1)))
 
 
-def generate_big_matrix(n, p):
+def generate_big_matrix(n, p, format):
     """Генерирует большую матрицу nxn разреженности p
     :param n: размерность или порядок матрицы
     :param p: отношение ненулевых клеток к nxn
     :return: матрица A в разреженном виде
     """
-    return scipy.sparse.random(n, n, p)
+    return scipy.sparse.random(n, n, p, format=format)
 
 
 def random_vector(n):

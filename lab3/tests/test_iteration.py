@@ -8,6 +8,11 @@ from scipy.sparse import csr_matrix
     ["matrix", "vector", "expected_answer"],
     [
         (
+            [[2, 1, 1], [0, 3, 2], [0, 0, 7]],
+            [9, 8, 7],
+            [3, 2, 1],
+        ),
+        (
             [[5, 1, 1], [1, 6, 2], [0, 1, 7]],
             [7, 13, 2],
             [1, 2, 0],

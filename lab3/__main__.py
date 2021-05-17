@@ -30,13 +30,13 @@ from primathlab3.math_util import (
 #             10e-6)
 
 
-res = seidel_method(scipy.sparse.csr_matrix(numpy.array([[2, 1, 1], [0, 3, 2], [0, 0, 7]])),
-            numpy.array([9, 8, 7]),
-            10e-6)
+# res = seidel_method(scipy.sparse.csr_matrix(numpy.array([[2, 1, 1], [0, 3, 2], [0, 0, 7]])),
+#             numpy.array([9, 8, 7]),
+#             10e-6)
+#
+#
+# print(res)
 
-print(res)
-
-exit()
 # [63.0 / 235, 67.0 / 235, 39.0 / 235]
 
 # ПУНКТ 1
@@ -148,8 +148,9 @@ def generate_test_equation(a, k):
     :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
     None - если уравнение несовместно
     """
+
     n = len(a)
-    A_k = empty_matrix(n, n).tolil()
+    A_k = empty_matrix(n, n, "lil").tolil()
 
     for i in range(n):
         t = -sum(a[i][k] for k in range(n))
@@ -158,13 +159,13 @@ def generate_test_equation(a, k):
                 A_k[i, j] = t
             else:
                 A_k[i, j] = t + pow(10.0, -k)
-    
+
     A_k = A_k.tocsr()
-    F_k = A_k.dot(ascending_vector(n))
-    
-    return A_k, F_k
+    return A_k
 
+print(generate_test_equation([[-2, -1, 0], [-7, -1, -9], [-3, -11, -2]], 20))
 
+exit()
 def test_equations(fn, n):
     """Возвращает массив погрешностей для последовательности
     :param fn: тестируемая функция генерации уравнений lambda k
@@ -172,6 +173,7 @@ def test_equations(fn, n):
     :return: массив размера n с погрешностью = max(x_1, x_2, ..., x_n)
     где x_i - погрешность между точным решением и решением метода ??? (наверное, так)
     """
+
     r = []
     for i in range(n):
         A, F = fn(i)
@@ -194,22 +196,41 @@ r = test_equations(lambda k: generate_test_equation(a, k), 7)
 # исследования на матрицах Гильберта
 
 
-def generate_test_equation_hilbert(k):
-    """Генерирует тестовое уравнение для решения с матрицей Гильберта
+def gen_nonsingular_matrix(n, p):
+    matrix = generate_big_matrix(n, p, "lil")
+    for i in range(n):
+        matrix[i, i] += 1000
+    return matrix
+
+def generate_diagonal_domination_matrix(a, k):
+    """Генерирует тестовое уравнение для решения
+    :param a: квадратная матрица коэффициентов a_ij (см. лабу, а также отчет)
     :param k: номер уравнения в последовательности
     :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
     None - если уравнение несовместно
     """
-    A_k = empty_matrix(k, k).tolil()
-    for i in range(k):
-        for j in range(k):
-            A_k[i, j] = 1.0 / (i + j + 1.0)
 
-    F_k = A_k.dot(ascending_vector(k))
-    return A_k.tocsr(), F_k
+    n = len(a)
+    A_k = empty_matrix(n, n, "lil").tolil()
+
+    for i in range(n):
+        t = -sum(a[i][k] for k in range(n))
+        for j in range(n):
+            if i != j:
+                A_k[i, j] = t
+            else:
+                A_k[i, j] = t + pow(10.0, -k)
+
+    A_k = A_k.tocsr()
+    return A_k
 
 
-r = test_equations(generate_test_equation_hilbert, 20)
+A_k = generate_test_equation([[2, 1, 1], [0, 3, 2], [0, 0, 7]], 20)
+F_k = A_k.dot(ascending_vector(A_k.shape[0]))
+
+res = seidel_method(A_k, F_k, 10e-6)
+print(res)
+
 # todo: построить график для последовательности и обработать результат
 
 # # ПУНКТ 6

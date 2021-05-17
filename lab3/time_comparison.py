@@ -1,13 +1,16 @@
 from itertools import count
 from timeit import timeit
 
-import numpy
+import numpy as np
 from scipy.sparse import linalg
 
 from primathlab3 import direct, iteration_method
-from primathlab3.math_util import generate_big_matrix, random_vector
-
-from lab3.primathlab3.math_util import empty_matrix
+from primathlab3.math_util import (
+    ascending_vector,
+    generate_big_matrix,
+    random_vector,
+    empty_matrix,
+)
 
 
 def gen_nonsingular_matrix(n, p):
@@ -15,6 +18,7 @@ def gen_nonsingular_matrix(n, p):
     for i in range(n):
         matrix[i, i] += 1000
     return matrix
+
 
 def generate_diagonal_domination_matrix(a, k):
     """Генерирует тестовое уравнение для решения
@@ -24,7 +28,7 @@ def generate_diagonal_domination_matrix(a, k):
     None - если уравнение несовместно
     """
     n = len(a)
-    A_k = empty_matrix(n, n, "lil").tolil()
+    A_k = empty_matrix(n, n, "lil")
 
     for i in range(n):
         t1 = -sum(a[i][k] for k in range(i))
@@ -32,12 +36,13 @@ def generate_diagonal_domination_matrix(a, k):
         t = t1 + t2
         for j in range(n):
             if i != j:
-                A_k[i, j] = t
+                A_k[i, j] = a[i, j]
             else:
                 A_k[i, j] = t + pow(10.0, -k)
 
     A_k = A_k.tocsr()
     return A_k
+
 
 def generate_hilbert_matrix(k):
     """Генерирует тестовое уравнение для решения с матрицей Гильберта
@@ -45,25 +50,13 @@ def generate_hilbert_matrix(k):
     :return: пара (A_k, F_k) для уравнения A_k * x_k = F_k
     None - если уравнение несовместно
     """
-    A_k = empty_matrix(k, k, "lil").tolil()
+    A_k = empty_matrix(k, k, "lil")
     for i in range(k):
         for j in range(k):
-            A_k[i, j] = 1.0 / (i + j - 1.0)
+            A_k[i, j] = 1.0 / (i + j + 1.0)
 
     return A_k.tocsr()
 
-def test_equations(A, F):
-    """Возвращает сумму погрешностей между
-    найденными значениями для двух методов"""
-
-    sum = 0.0
-    left = iteration_method.seidel_method(A, F)
-    right = direct.system_solution(A, F)
-
-    for i in range(left.shape[0]):
-        sum = abs(right[i] - left[i])
-
-    return sum
 
 def gen_test_data(n, p=0.3):
     # Различные способы генерации матриц
@@ -82,7 +75,7 @@ def scipy_solver(matrix, vector):
     return lu.solve(vector)
 
 
-if __name__ == "__main__":
+def time_comparison():
     solver = iteration_method.seidel_method
 
     print("n, execution_time")
@@ -92,3 +85,52 @@ if __name__ == "__main__":
         matrix, vector = gen_test_data(n, p=0.01)
         exe_time = test_exe_time(solver, matrix, vector)
         print(n, exe_time, sep=", ")
+
+
+def error_comparison():
+    solver = direct.system_solution
+
+    source_matrix = np.array(
+        [
+            [0, 0, -1, 0, 0],
+            [0, -2, 0, 0, 0],
+            [-4, -3, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, -1, 0],
+        ]
+    )
+
+    x = ascending_vector(len(source_matrix))
+
+    print("k", "error", sep=", ")
+
+    for k in count(1):
+        matrix = generate_diagonal_domination_matrix(source_matrix, k)
+        vector = matrix * x
+
+        answer = solver(matrix, vector)
+
+        error = np.linalg.norm(answer - x)
+
+        print(k, error, sep=", ")
+
+
+def error_comparison_hilbert():
+    solver = iteration_method.seidel_method
+
+    print("k", "error", sep=", ")
+
+    for k in count(2):
+        matrix = generate_hilbert_matrix(k)
+        x = ascending_vector(k)
+        vector = matrix * x
+
+        answer = solver(matrix, vector)
+
+        error = np.linalg.norm(answer - x)
+
+        print(k, error, sep=", ")
+
+
+if __name__ == "__main__":
+    error_comparison_hilbert()

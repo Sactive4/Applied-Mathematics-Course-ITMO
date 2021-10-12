@@ -46,8 +46,11 @@ class Table:
         self.columns = np.arange(nvars)
         self.rows = np.arange(nvars - nconstr, nvars)
 
-        self.v = np.zeros(nvars)
-        self.v[nconstr:] = 1
+        if task.start:
+            self.v = np.array(task.start)
+        else:
+            self.v = np.zeros(nvars)
+            self.v[nconstr:] = 1
 
 
     # def __fake_init__(self, task: Task):

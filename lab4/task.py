@@ -7,6 +7,7 @@ import scipy.optimize
 from pydantic import BaseModel
 from enum import Enum
 from math import isclose
+from typing import Optional
 
 
 class TaskType(str, Enum):
@@ -46,6 +47,7 @@ class Task(BaseModel):
     type: TaskType
     f: list[float]
     constraints: list[Constraint]
+    start: Optional[list[float]]
 
 
     @staticmethod

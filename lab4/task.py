@@ -2,7 +2,7 @@
 import json
 
 # import numpy as np
-# import scipy.optimize
+import scipy.optimize
 
 from pydantic import BaseModel
 from enum import Enum
@@ -46,7 +46,6 @@ class Task(BaseModel):
     type: TaskType
     f: list[float]
     constraints: list[Constraint]
-    # start: list[float]
 
 
     @staticmethod
@@ -56,22 +55,32 @@ class Task(BaseModel):
             return Task(**data)
     
 
+    def to_min_in_place(self):
+        if self.type is TaskType.min:
+            return
+
+        self.f = [-x for x in self.f]
+        self.type = TaskType.min
+    
+
+    def remove_ge_in_place(self):
+        for c in self.constraints:
+            if c.sign is ConstraintSign.ge:
+                c.mul_in_place(-1)
+    
+
     def to_canonical(self):
-        task = self.copy()
+        task = self.copy(deep=True)
 
         # Задачу максимизации приводим к задаче минимизации
         # путём умножения функции на -1
 
-        if task.type is TaskType.max:
-            task.f = [-x for x in task.f]
-            task.type = TaskType.min
+        task.to_min_in_place()
 
         # Ограничения >= приведём к ограничениям <= путём
         # умножения их на -1
 
-        for c in task.constraints:
-            if c.sign is ConstraintSign.ge:
-                c.mul_in_place(-1)
+        task.remove_ge_in_place()
 
         # Неравенства приведём к равенствам путём введения
         # новых переменных
@@ -120,15 +129,36 @@ class Task(BaseModel):
         
         return "\n".join(lines)
 
+
+def solve_scipy(task: Task):
+    task = task.copy(deep=True)
+    task.to_min_in_place()
+    task.remove_ge_in_place()
+
+    a_eq = None
+    b_eq = None
+    a_leq = None
+    b_leq = None
+
+    for c in task.constraints:
+        if c.sign is ConstraintSign.eq:
+            a_eq = a_eq or []
+            b_eq = b_eq or []
+
+            a_eq.append(c.a)
+            b_eq.append(c.b)
+
+        elif c.sign is ConstraintSign.le:
+            a_leq = a_eq or []
+            b_leq = b_eq or []
+
+            a_leq.append(c.a)
+            b_leq.append(c.b)
+
+        else:
+            raise ValueError(f"Unexpected constraint sign {c.sign}")
     
-    def solve_scipy(self):
-        # TODO
-        # self.f: минимизируемая линейная функция (столбик коэффициентов перед x)
-        # self.c: 2-мерная матрица ограничений в форме <=
-        # Все переменные принимаются x_j >= 0
-        # return scipy.optimize.linprog(c=self.f, A_eq=self.c[:, 0:-1], b_eq=self.c[:, -1])
-        
-        raise NotImplementedError
+    return scipy.optimize.linprog(c=task.f, A_eq=a_eq, b_eq=b_eq, A_ub=a_leq, b_ub=b_leq)
 
 
 if __name__ == "__main__":

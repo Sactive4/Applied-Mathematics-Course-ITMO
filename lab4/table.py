@@ -1,6 +1,6 @@
 import numpy as np
 
-from task import Task, ConstraintSign
+from task import Task, solve_scipy
 
 
 class Table:
@@ -23,27 +23,47 @@ class Table:
 
     # будет отдельный массив rows, columns, который будет сопоставлять каждому строке/столбцу номер переменной
 
-    def real_init(self, task: Task, start=None):
-        start = start or []
-        self.n = len(task.f)
-        self.m = len(task.constraints)
-        self.table = ...
-
-
     def __init__(self, task: Task):
-        self.n = 2 # количество начальных переменных
-        self.k = 3 # количество неравенств
-        self.m = 3 # количество ограничений
-        self.table = np.zeros(shape=(self.m + 1, self.n + self.k - self.m)) # double
-        self.v = np.zeros(shape=(self.n + self.k))
-        self.rows = np.empty(shape=(self.m + 1)) # int
-        self.columns = np.empty(shape=(self.n + self.k - self.m)) # int
+        self.n = len(task.f) # число оригинальных переменных
 
-        self.table = np.array([ [4, 2, -1, 1, 0, 0], [2, 1, -2, 0, 1, 0], [5, 1, 1, 0, 0, 1], [0, -3, 1, 0, 0, 0]], dtype=np.double)
+        task = task.to_canonical()
+
+        nvars = len(task.f)
+        nconstr = len(task.constraints)
+
+        ncols = nvars + 1
+        nrows = nconstr + 1
+
+        self.table = np.empty(shape=(nrows, ncols))
+
+        for i, constr in enumerate(task.constraints):
+            self.table[i] = [constr.b] + constr.a
+
+        self.table[-1] = [0] + task.f
+
         self.table[:, 1:] *= (-1)
-        self.v[self.m:] = 1
-        self.rows = np.array([2, 3, 4])
-        self.columns = np.array([0, 1, 2, 3, 4])
+        
+        self.columns = np.arange(nvars)
+        self.rows = np.arange(nvars - nconstr, nvars)
+
+        self.v = np.zeros(nvars)
+        self.v[nconstr:] = 1
+
+
+    # def __fake_init__(self, task: Task):
+    #     self.n = 2 # количество начальных переменных
+    #     self.k = 3 # количество неравенств
+    #     self.m = 3 # количество ограничений
+    #     self.table = np.zeros(shape=(self.m + 1, self.n + self.k - self.m)) # double
+    #     self.v = np.zeros(shape=(self.n + self.k))
+    #     self.rows = np.empty(shape=(self.m + 1)) # int
+    #     self.columns = np.empty(shape=(self.n + self.k - self.m)) # int
+
+    #     self.table = np.array([ [4, 2, -1, 1, 0, 0], [2, 1, -2, 0, 1, 0], [5, 1, 1, 0, 0, 1], [0, -3, 1, 0, 0, 0]], dtype=np.double)
+    #     self.table[:, 1:] *= (-1)
+    #     self.v[self.m:] = 1
+    #     self.rows = np.array([2, 3, 4])
+    #     self.columns = np.array([0, 1, 2, 3, 4])
 
     def swap(row, column):
         """
@@ -66,9 +86,10 @@ class Table:
                 return x
         return []
 
-    def next_step(self):
+    def next_step(self, debug=False):
 
-        print(self.table)
+        if debug:
+            print(self.table)
 
         # индекс разрешающего столбца
         j = 1 + np.argmin(self.table[-1, 1:])
@@ -108,5 +129,11 @@ class Table:
         return None
 
 
-t = Table(None)
-print(t.solve())
+if __name__ == "__main__":
+    for fn in ["tasks/example.json", "tasks/example2.json"]:
+        print("NOW: " + fn)
+        task = Task.load(fn)
+        t = Table(task)
+        print(t.solve())
+        print(solve_scipy(task).x)
+    

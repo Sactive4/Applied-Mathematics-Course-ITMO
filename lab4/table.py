@@ -89,6 +89,7 @@ class Table:
         if self.supplementary or True: # TODO: NOW WE CHOOSE LAST VARIABLES AS BASIS
             self.v = np.zeros(self.nvars)
             self.v[-self.nconstr:] = 1
+            #self.v = self.table[]
             if debug:
                 print("Solving supplementary task.")
         else:
@@ -129,7 +130,19 @@ class Table:
             print(self.rows)
 
         # индекс разрешающего столбца
+
+        #bbb = (np.divide(self.table[:-1, 0], self.table[:-1, j], out=np.zeros_like(self.table[:-1, 0]) - 777, where=(self.table[:-1, j]>=eps)))
+        #valid_idx = np.where(self.table[-1, 1:] in )[0]
+        #j = valid_idx[ccc[valid_idx].argmin()]
+
+
+        # TODO: здесь надо сделать поиск разрешающего столбца
+        # ТОЛЬКО ПО СВОБОДНЫМ ПЕРЕМЕННЫМ!!!
+        print([i not in self.rows for i in range(len(self.table.shape[1]))])
+        self.table[-1, [i not in self.rows for i in range(len(self.table.shape[1]))]]
+
         j = 1 + np.argmin(self.table[-1, 1:])
+        #j = 1 + np.argmin(self.table[-1, 1:])
         if self.table[-1, j] >= -eps:
             if debug:
                 print("Result found.")

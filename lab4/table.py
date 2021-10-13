@@ -23,7 +23,7 @@ class Table:
 
     # будет отдельный массив rows, columns, который будет сопоставлять каждому строке/столбцу номер переменной
 
-    def __init__(self, task: Task):
+    def __init__(self, task: Task, Supplementary=False):
         self.n = len(task.f) # число оригинальных переменных
 
         task = task.to_canonical()
@@ -41,16 +41,18 @@ class Table:
 
         self.table[-1] = [0] + task.f
 
-        self.table[:, 1:] *= (-1)
+        #self.table[:, 1:] *= (-1)
+        #self.table[-1, :] *= (-1)
         
         self.columns = np.arange(nvars)
         self.rows = np.arange(nvars - nconstr, nvars)
 
-        if task.start:
-            self.v = np.array(task.start)
-        else:
-            self.v = np.zeros(nvars)
-            self.v[nconstr:] = 1
+        # debug params
+        self.supplementary = Supplementary
+        self.nvars = len(task.f)
+        self.nconstr = len(task.constraints)
+        self.ncols = self.nvars + 1
+        self.nrows = self.nconstr + 1
 
 
     # def __fake_init__(self, task: Task):
@@ -68,58 +70,121 @@ class Table:
     #     self.rows = np.array([2, 3, 4])
     #     self.columns = np.array([0, 1, 2, 3, 4])
 
-    def swap(row, column):
-        """
-        Меняет местами ...
-        @param row: номер строки (0..m-1)
-        @param column: номер столбца (0..(n+k-m-1))
-        """
-        ...
+    # def get_initial_point(self):
+        
+
+    # def swap(row, column):
+    #     """
+    #     Меняет местами ...
+    #     @param row: номер строки (0..m-1)
+    #     @param column: номер столбца (0..(n+k-m-1))
+    #     """
+    #     ...
 
     def __rectangle_value(self, a, x):
         return self.table[x[0], x[1]] - (self.table[a[0], x[1]] * self.table[x[0], a[1]]) / self.table[a[0], a[1]]
 
-    def solve(self):
-        N = 100 # max iterations
+    def solve(self, debug=False):
+
+        if self.supplementary or True: # TODO: NOW WE CHOOSE LAST VARIABLES AS BASIS
+            self.v = np.zeros(self.nvars)
+            self.v[-self.nconstr:] = 1
+            if debug:
+                print("Solving supplementary task.")
+        else:
+            if debug:
+                print("Solving main task.")
+            if task.start:
+                self.v = np.array(task.start)
+            else:
+                self.v = Table(task.to_supplementary(), Supplementary=True).solve(debug=True)
+        
+        if debug:
+            print("Initial point is: ")
+            print(self.v)
+
+
+        N = 6 # max iterations
         for i in range(N):
-            x = self.next_step()
+            x = self.next_step(debug)
             if x is None:
                 continue
             else:
+                if len(x) == 0:
+                    print("no solution =(")
                 return x
+        print("no solution =(")
         return []
 
     def next_step(self, debug=False):
 
+        eps = 0.0000001
+
         if debug:
+            print("Next step. Table:")
             print(self.table)
+            print("Point:")
+            print(self.v)
+            print("Rows:")
+            print(self.rows)
 
         # индекс разрешающего столбца
         j = 1 + np.argmin(self.table[-1, 1:])
-        if self.table[-1, j] >= 0:
+        if self.table[-1, j] >= -eps:
+            if debug:
+                print("Result found.")
+                print(self.v)
             # минимум найден, останавливаемся
             return self.v[:(self.n)]
         
+        ccc = (np.divide(self.table[:-1, 0], self.table[:-1, j], out=np.zeros_like(self.table[:-1, 0]) - 777, where=(self.table[:-1, j]>=eps)))
+
+        if debug:
+            print("ccc: ", ccc)
         # индекс разрешающей строки
-        i = np.argmin( self.table[:-1, 0] / self.table[:-1, j])
+        #i = np.argmin( self.table[:-1, 0] / self.table[:-1, j])
+        #i = np.argmin(ccc)
         #print((i,j))
         #print(self.table[i, j])
-        if self.table[i, j] >= 0:
-            # решения нет
-            return []
+        
+        #print (-0.0 / 1.0 > eps)
 
+        #valid_idx = np.where(ccc == ccc)[0]
+        #print(ccc)
+        #print(np.where(ccc > eps)[0])
+        valid_idx = np.where(ccc > -eps)[0]
+        if (len(valid_idx) == 0):
+            if debug:
+                print("Result found.")
+                print(self.v)
+            # минимум найден, останавливаемся
+            return self.v[:(self.n)]
+
+        i = valid_idx[ccc[valid_idx].argmin()]
+
+        
+        
+        #if self.table[i, j] <= 0:
+        #    # решения нет
+        #    return []
+
+        if debug:
+            print("Разрешающий элемент: ", i, ", ", j)
         new_table = np.array(self.table, copy=True)
         for x in range(self.table.shape[0]):
             for y in range(self.table.shape[1]):
                 if x == i:
                     new_table[x, y] /= self.table[i, j]
-                    if y != j:
-                        new_table[x, y] *= (-1)
+                    #if y != j:
+                    #    new_table[x, y] *= (-1)
                 else:
                     new_table[x, y] = self.__rectangle_value((i, j), (x, y))
         
         self.table[:] = new_table # np.array(new_table, copy=True)
         self.rows[i] = self.columns[j - 1]
+
+        #print(self.v)
+
         self.v = np.zeros(shape=(self.v.shape[0]))
         for x in range(len(self.rows)):
             self.v[self.rows[x]] = self.table[x, 0]
@@ -131,12 +196,26 @@ class Table:
 
         return None
 
+def solve(fn):
+    print("NOW: " + fn)
+    task = Task.load(fn)
+    t = Table(task)
+    print(t.solve())
+    print(solve_scipy(task).x)
 
 if __name__ == "__main__":
-    for fn in ["tasks/example.json", "tasks/example2.json"]:
+
+    for fn in ["tasks/t1.json"]:
+    #for fn in ["tasks/example.json", "tasks/example2.json", "tasks/t1.json", "tasks/t2.json", "tasks/t3.json", "tasks/t4.json", "tasks/t5.json", "tasks/t6.json", "tasks/t7.json"]:
         print("NOW: " + fn)
         task = Task.load(fn)
         t = Table(task)
-        print(t.solve())
-        print(solve_scipy(task).x)
+
+        s = t.solve(True)
+        nps = solve_scipy(task, False).x
+
+        print("***** SOLUTIONS *****")
+        print("OURS: ", s)
+        print("NUMPY:", nps)
+        print(np.allclose(s, nps))
     

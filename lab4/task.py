@@ -3,6 +3,7 @@ import json
 
 # import numpy as np
 import scipy.optimize
+import numpy as np
 
 from pydantic import BaseModel
 from enum import Enum
@@ -111,6 +112,17 @@ class Task(BaseModel):
         return task
     
 
+    def to_supplementary(self):
+        task = self.copy(deep=True)
+        task.f = [0.0] * len(task.f) + [1.0] * len(task.constraints)
+
+        for i in range(len(task.constraints)):
+            task.constraints[i].a += [0.0] * len(task.constraints)
+            task.constraints[i].a[len(self.f) + i] = 1.0
+
+        return task
+
+
     @staticmethod
     def _pretty_summands(coefs):
         return " + ".join(
@@ -132,27 +144,32 @@ class Task(BaseModel):
         return "\n".join(lines)
 
 
-def solve_scipy(task: Task):
+def solve_scipy(task: Task, debug=False):
     task = task.copy(deep=True)
     task.to_min_in_place()
     task.remove_ge_in_place()
 
-    a_eq = None
-    b_eq = None
-    a_leq = None
-    b_leq = None
+    # a_eq = None
+    # b_eq = None
+    # a_leq = None
+    # b_leq = None
+
+    a_eq = []
+    b_eq = []
+    a_leq = []
+    b_leq = []
 
     for c in task.constraints:
         if c.sign is ConstraintSign.eq:
-            a_eq = a_eq or []
-            b_eq = b_eq or []
+            # a_eq = a_eq or []
+            # b_eq = b_eq or []
 
             a_eq.append(c.a)
             b_eq.append(c.b)
 
         elif c.sign is ConstraintSign.le:
-            a_leq = a_eq or []
-            b_leq = b_eq or []
+            # a_leq = a_eq or []
+            # b_leq = b_eq or []
 
             a_leq.append(c.a)
             b_leq.append(c.b)
@@ -160,6 +177,23 @@ def solve_scipy(task: Task):
         else:
             raise ValueError(f"Unexpected constraint sign {c.sign}")
     
+    if len(a_eq) == 0:
+        a_eq = None
+        b_eq = None
+
+    if len(a_leq) == 0:
+        a_leq = None
+        b_leq = None
+
+    if debug:
+        print("Solving Numpy:")
+        print(task.f)
+        print(a_eq)
+        print(b_eq)
+        print(a_leq)
+        print(b_leq)
+        #print(np.concatenate(a_eq, b_eq))
+
     return scipy.optimize.linprog(c=task.f, A_eq=a_eq, b_eq=b_eq, A_ub=a_leq, b_ub=b_leq)
 
 

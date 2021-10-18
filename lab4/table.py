@@ -1,9 +1,17 @@
 import numpy as np
+from pydantic import BaseModel
+from enum import Enum
 
 from task import Task, solve_scipy
 
+class TableType(str, Enum):
+    default = "default"
+    solve_supplementary = "solve_supplementary"
+    use_start = "use_start"
 
 class Table:
+
+    # LEGACY ===== LEGACY ===== LEGACY ===== LEGACY ===== LEGACY ===== LEGACY
     # n начальных переменных
     # m ограничений (среди них k неравенств, это для новых переменных нужно)
     # то
@@ -22,213 +30,152 @@ class Table:
     # тогда адресация будет прямая, например, [0][1], для пересечения переменной 1 и 4
 
     # будет отдельный массив rows, columns, который будет сопоставлять каждому строке/столбцу номер переменной
+    # LEGACY ===== LEGACY ===== LEGACY ===== LEGACY ===== LEGACY ===== LEGACY
 
-    def __init__(self, task: Task, Supplementary=False):
-        self.n = len(task.f) # число оригинальных переменных
+    def __init__(self, task: Task, type : TableType = TableType.default):
 
-        task = task.to_canonical()
+        self.type = type
+        self.n = len(task.f) # число исходных переменных
 
-        nvars = len(task.f)
-        nconstr = len(task.constraints)
-
-        ncols = nvars + 1
-        nrows = nconstr + 1
-
-        self.table = np.empty(shape=(nrows, ncols))
-
-        for i, constr in enumerate(task.constraints):
-            self.table[i] = [constr.b] + constr.a
-
-        self.table[-1] = [0] + task.f
-
-        #self.table[:, 1:] *= (-1)
-        #self.table[-1, :] *= (-1)
-        
-        self.columns = np.arange(nvars)
-        self.rows = np.arange(nvars - nconstr, nvars)
-
-        # debug params
-        self.supplementary = Supplementary
-        self.nvars = len(task.f)
-        self.nconstr = len(task.constraints)
+        self.task = task.to_canonical()
+        self.nvars = len(self.task.f) # число всех переменных (свободные + базисные)
+        self.nconstr = len(self.task.constraints) # число ограничений
         self.ncols = self.nvars + 1
         self.nrows = self.nconstr + 1
 
+        self.table = np.empty(shape=(self.nrows, self.ncols))
 
-    # def __fake_init__(self, task: Task):
-    #     self.n = 2 # количество начальных переменных
-    #     self.k = 3 # количество неравенств
-    #     self.m = 3 # количество ограничений
-    #     self.table = np.zeros(shape=(self.m + 1, self.n + self.k - self.m)) # double
-    #     self.v = np.zeros(shape=(self.n + self.k))
-    #     self.rows = np.empty(shape=(self.m + 1)) # int
-    #     self.columns = np.empty(shape=(self.n + self.k - self.m)) # int
+        # Заполним таблицу ограничениями
+        for i, constr in enumerate(self.task.constraints):
+            self.table[i] = [constr.b] + constr.a
 
-    #     self.table = np.array([ [4, 2, -1, 1, 0, 0], [2, 1, -2, 0, 1, 0], [5, 1, 1, 0, 0, 1], [0, -3, 1, 0, 0, 0]], dtype=np.double)
-    #     self.table[:, 1:] *= (-1)
-    #     self.v[self.m:] = 1
-    #     self.rows = np.array([2, 3, 4])
-    #     self.columns = np.array([0, 1, 2, 3, 4])
-
-    # def get_initial_point(self):
+        # Заполним целевую функцию
+        self.table[-1] = [0] + self.task.f
         
+        # В self.rows мы храним индексы, соответствующие номеру базисной переменной
+        # По умолчанию, принимаем последние self.nconstr переменных
+        # если мы явно не вводили новые переменные, то присвоим просто следующие виртуальные номера
+        self.rows = np.arange(self.nvars - self.nconstr, self.nvars)
+        for i in range(self.nconstr):
+            self.rows[i] = self.nvars - self.nconstr + i
 
-    # def swap(row, column):
-    #     """
-    #     Меняет местами ...
-    #     @param row: номер строки (0..m-1)
-    #     @param column: номер столбца (0..(n+k-m-1))
-    #     """
-    #     ...
+        # В self.v храним координаты текущей вершины
+        # Выбираем вершину как свободные члены при базисных переменных
+        self.v = self._rows_to_v()
 
-    def __rectangle_value(self, a, x):
-        return self.table[x[0], x[1]] - (self.table[a[0], x[1]] * self.table[x[0], a[1]]) / self.table[a[0], a[1]]
 
-    def solve(self, debug=False):
-
-        if self.supplementary or True: # TODO: NOW WE CHOOSE LAST VARIABLES AS BASIS
-            self.v = np.zeros(self.nvars)
-            self.v[-self.nconstr:] = 1
-            #self.v = self.table[]
-            if debug:
-                print("Solving supplementary task.")
-        else:
-            if debug:
-                print("Solving main task.")
-            if task.start:
-                self.v = np.array(task.start)
-            else:
-                self.v = Table(task.to_supplementary(), Supplementary=True).solve(debug=True)
+    def solve(self, debug=False, max_iter=100):
         
-        if debug:
-            print("Initial point is: ")
-            print(self.v)
+        # Если указано, найдем начальную вершину через вспомогательную задачу
+        if self.type == TableType.solve_supplementary:
+            self.v = Table(self.task.to_supplementary(), type=TableType.default).solve(debug)
+            # TODO: проверить, работает ли эта вещь
+            raise NotImplementedError("Сначала проверим =)")
 
+        # Если указано, воспользуемся начальной вершиной
+        if self.type == TableType.use_start:
+            self.v = self.task.start
+            # TODO: привести таблицу в вид, соответствующий стартовой вершине
+            raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
 
-        N = 6 # max iterations
-        for i in range(N):
+        for i in range(max_iter):
             x = self.next_step(debug)
             if x is None:
                 continue
             else:
                 if len(x) == 0:
-                    print("no solution =(")
+                    break
+                if debug:
+                    print("Solution found.")
                 return x
-        print("no solution =(")
+        if debug:
+           print("No solution / Out of iterations.")
         return []
 
     def next_step(self, debug=False):
 
-        eps = 0.0000001
+        # Таблица вычисляется для поиска максимума
+        eps = 0.000001
 
         if debug:
+            print("==================")
             print("Next step. Table:")
             print(self.table)
-            print("Point:")
-            print(self.v)
-            print("Rows:")
-            print(self.rows)
-
-        # индекс разрешающего столбца
-
-        #bbb = (np.divide(self.table[:-1, 0], self.table[:-1, j], out=np.zeros_like(self.table[:-1, 0]) - 777, where=(self.table[:-1, j]>=eps)))
-        #valid_idx = np.where(self.table[-1, 1:] in )[0]
-        #j = valid_idx[ccc[valid_idx].argmin()]
+            print("Point:", self.v)
+            print("Rows:", self.rows)
 
 
-        # TODO: здесь надо сделать поиск разрешающего столбца
-        # ТОЛЬКО ПО СВОБОДНЫМ ПЕРЕМЕННЫМ!!!
-        print([i not in self.rows for i in range(len(self.table.shape[1]))])
-        self.table[-1, [i not in self.rows for i in range(len(self.table.shape[1]))]]
-
-        j = 1 + np.argmin(self.table[-1, 1:])
-        #j = 1 + np.argmin(self.table[-1, 1:])
-        if self.table[-1, j] >= -eps:
-            if debug:
-                print("Result found.")
-                print(self.v)
-            # минимум найден, останавливаемся
-            return self.v[:(self.n)]
-        
-        ccc = (np.divide(self.table[:-1, 0], self.table[:-1, j], out=np.zeros_like(self.table[:-1, 0]) - 777, where=(self.table[:-1, j]>=eps)))
-
-        if debug:
-            print("ccc: ", ccc)
-        # индекс разрешающей строки
-        #i = np.argmin( self.table[:-1, 0] / self.table[:-1, j])
-        #i = np.argmin(ccc)
-        #print((i,j))
-        #print(self.table[i, j])
-        
-        #print (-0.0 / 1.0 > eps)
-
-        #valid_idx = np.where(ccc == ccc)[0]
-        #print(ccc)
-        #print(np.where(ccc > eps)[0])
-        valid_idx = np.where(ccc > -eps)[0]
-        if (len(valid_idx) == 0):
-            if debug:
-                print("Result found.")
-                print(self.v)
-            # минимум найден, останавливаемся
+        # проверим на оптимальность
+        if np.all(self.table[-1, 1:] <= eps):
             return self.v[:(self.n)]
 
-        i = valid_idx[ccc[valid_idx].argmin()]
+        # начинаем очередную оптимизацию
+        # выбираем разрешающий столбец
+        j = 1 + np.argmax(self.table[-1, 1:])
 
-        
-        
-        #if self.table[i, j] <= 0:
-        #    # решения нет
-        #    return []
+        # выбираем разрешающую строку
+        # для тех элементов, что > 0 находим значения
+        i_values = np.divide(self.table[:-1, 0], self.table[:-1, j], out=np.zeros_like(self.table[:-1, 0]) + np.inf, where=(self.table[:-1, j]>=eps))
+        i = i_values.argmin()
+
+        # проверим, если решения нет
+        if self.table[i, j] == np.inf:
+            return []
 
         if debug:
-            print("Разрешающий элемент: ", i, ", ", j)
-        new_table = np.array(self.table, copy=True)
-        for x in range(self.table.shape[0]):
-            for y in range(self.table.shape[1]):
-                if x == i:
-                    new_table[x, y] /= self.table[i, j]
-                    #if y != j:
-                    #    new_table[x, y] *= (-1)
-                else:
-                    new_table[x, y] = self.__rectangle_value((i, j), (x, y))
-        
-        self.table[:] = new_table # np.array(new_table, copy=True)
-        self.rows[i] = self.columns[j - 1]
+            print("Pivot Index: ", i, ", ", j)
+            print("Pivot: ", self.table[i, j])
 
-        #print(self.v)
+        # поделим разрешающую строку на опорный элемент
+        pivot = self.table[i, j]
+        self.table[i, :] /= pivot
 
-        self.v = np.zeros(shape=(self.v.shape[0]))
-        for x in range(len(self.rows)):
-            self.v[self.rows[x]] = self.table[x, 0]
+        # по правилу прямоугольника пересчитаем таблицу
+        for x in range(self.table.shape[0]): 
+            if x != i:
+                self.table[x, :] -= (self.table[x, j] / self.table[i, j]) * self.table[i, :] 
 
-        #print(self.table)
-        #print(self.table[:-1, :(self.m+1)])
-        #print(np.linalg.solve(self.table[:-1, :(self.m+1)], self.table[:, 0]))
-        #print(self.table)
+        # перезапишем новую базисную переменную
+        self.rows[i] = j - 1
 
+        # обновим текущую вершину
+        self.v = self._rows_to_v()
+
+        # этот сигнал, что нужно идти дальше
         return None
 
-def solve(fn):
-    print("NOW: " + fn)
+    def _rows_to_v(self):
+        v = np.zeros(shape=(self.n))
+        for x in range(self.nconstr):
+            if self.rows[x] < self.n:
+                v[self.rows[x]] = self.table[x, 0]
+        return v
+
+def solve(fn, debug=False):
     task = Task.load(fn)
-    t = Table(task)
-    print(t.solve())
-    print(solve_scipy(task).x)
+    return Table(task).solve(debug), task.answer
+
+def get_fns():
+    from os import listdir
+    from os.path import isfile, join
+    return ["tasks/" + f for f in listdir("./tasks/") if isfile(join("./tasks/", f))]
 
 if __name__ == "__main__":
 
-    for fn in ["tasks/t1.json"]:
-    #for fn in ["tasks/example.json", "tasks/example2.json", "tasks/t1.json", "tasks/t2.json", "tasks/t3.json", "tasks/t4.json", "tasks/t5.json", "tasks/t6.json", "tasks/t7.json"]:
-        print("NOW: " + fn)
-        task = Task.load(fn)
-        t = Table(task)
+    for fn in get_fns():
+        #print("======>>>>> TASK: " + fn)
+        
+        # TODO: Красивый вывод? (отступы, может быть)
+        # TODO: Добавить во все файлы ответы, их можно посчитать через онлайн сервисы
+        # или см. https://mattmolter.medium.com/creating-a-linear-program-solver-by-implementing-the-simplex-method-in-python-with-numpy-22f4cbb9b6db
+        # и см. https://github.com/mmolteratx/Simplex = SinglePhase, там тупо вбить и всё будет круто
+        # TODO: написать отчет, в нем отразить всю теорию, этапы работы алгоритма, ответить на вопросы в нем
 
-        s = t.solve(True)
-        nps = solve_scipy(task, False).x
-
-        print("***** SOLUTIONS *****")
-        print("OURS: ", s)
-        print("NUMPY:", nps)
-        print(np.allclose(s, nps))
+        solution, answer = solve(fn)
+        if answer is None:
+            print("? ", solution, " Add answer to evaluate. ", fn)
+        elif np.allclose(solution, answer):
+            print("+ ", solution, " OK ", fn)
+        else:
+            print("- ", solution, " WRONG ", fn)
     

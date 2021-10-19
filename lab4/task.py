@@ -83,10 +83,9 @@ class Task(BaseModel):
     def to_canonical(self):
         task = self.copy(deep=True)
 
-        # Задачу максимизации приводим к задаче минимизации
+        # Задачу минимизации приводим к задаче максимизации
         # путём умножения функции на -1
 
-        #task.to_min_in_place()
         task.to_max_in_place()
 
         # Ограничения >= приведём к ограничениям <= путём

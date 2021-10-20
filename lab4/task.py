@@ -152,7 +152,7 @@ class Task(BaseModel):
                     print(v, " ", c.sign, " ", c.b)
                     return False
             if c.sign == ConstraintSign.eq:
-                if (v - c.b) > 0.00001:
+                if abs(v - c.b) > 0.00001:
                     print(v, " ", c.sign, " ", c.b)
                     return False
             if c.sign == ConstraintSign.ge:
@@ -164,13 +164,25 @@ class Task(BaseModel):
     def to_supplementary(self):
         # TODO: проверить, работает ли правильно
         task = self.copy(deep=True)
-        task.f = [0.0] * len(task.f) + [1.0] * len(task.constraints)
+
+        #task.f = [0.0] * len(task.f) + [1.0] * len(task.constraints)
+        task.f = np.array([0.0] * len(task.f) + [0.0] * len(task.constraints))
 
         for i in range(len(task.constraints)):
             task.constraints[i].a += [0.0] * len(task.constraints)
             task.constraints[i].a[len(self.f) + i] = 1.0
+            #task.constraints[i].b = 
+            # print(task.f)
+            # print(task.constraints[i].a)
+            #task.f[0] += task.constraints[i].b
+            task.f[:] += task.constraints[i].a
 
-        task.type = TaskType.min
+        task.type = TaskType.min # TODO: поменять на макс, ошибка в знаках
+        task.start = [0.0] * (len(task.f) - len(task.constraints)) + [1.0] * len(task.constraints)
+        
+        task.f[- len(task.constraints):] = 0.0
+
+        print(task.f)
 
         return task
 

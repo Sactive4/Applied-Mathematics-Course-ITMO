@@ -118,7 +118,7 @@ class Table:
 
         # assert np.all(self.table[:-1, 0] >= 0), "Свободные коэффициенты стали отрицательными"
 
-    def solve(self, debug=False, max_iter=100):
+    def solve(self, debug=False, max_iter=100, run_as_supplementary=True):
         # None - пропущено
         # [] - решения не найдено
 
@@ -131,6 +131,11 @@ class Table:
 
         # Выбираем начальную вершину
         if self.type == TableType.use_start and not(self.task.start is None):
+
+            #print(self.task.start)
+            #print(self.task)
+            #assert self.task.check_correct(self.task.start), "Начальная вершина некорректная"
+
             self.rows = []
             for y in range(len(self.task.start)):
                 if self.task.start[y] != 0:
@@ -138,20 +143,54 @@ class Table:
             self.rows = np.array(self.rows)
             self.v = self._rows_to_v()
             assert len(self.rows) == self.nconstr, "Начальная вершина некорректная"
+
         elif self.type != TableType.solve_supplementary:
-            pass
+            
             #print(self.v)
-            #self.v = Table(self.task.to_supplementary(), type=TableType.solve_supplementary).solve(debug)
+            task_sup = self.task.to_supplementary()
+            table_sup = Table(task_sup, type=TableType.use_start)
+            table_sup.table[-1, 0] = np.sum(table_sup.table[:-1, 0])
+            print(table_sup.table)
+            print("SOLVING SUP")
+            self.task.start = table_sup.solve(debug, max_iter = 5, run_as_supplementary=True)
+            print("SOLVING STOPPED SUP")
+           #print(table_sup.table)
+
+            print(self.task.start)
+            assert task_sup.check_correct(self.task.start), "Начальная вершина некорректная"
+
+            print(self.nvars)
+            print(self.task.start)
+
+            self.task.start = self.task.start[:self.nvars]
+
+            print(self.task.start)
+            print(self.rows)
+
+            self.v = self._rows_to_v()
+            assert len(self.rows) == self.nconstr, "Начальная вершина некорректная"
+
             #print("my initial point is ", self.v)
 
         #print(self.v)
 
         #print("motherfucker v ", self.v)
         self.v = np.array(self.v)
+        print("vvv ", self.v)
+        print(self.table[-1, 1:])
 
+        if not run_as_supplementary:
+            self.table[-1, 0] = self.v @ self.table[-1, 1:]
+
+        """
+        [[  0.   1.   1.  -1. -10.   1.   0.]
+        [ 11.   1.  14.  10. -10.   0.   1.]
+        [  0.  -0.  -0.  -0.  -0.  -1.  -1.]]
+        """
         # Инициализируем таблицу для начальной вершины
         #print("Initial rows ", self.rows)
 
+        print("lolo ", self.table)
         
     
         #print(self.rows)
@@ -305,9 +344,9 @@ def get_fns():
 if __name__ == "__main__":
 
     #for fn in ["tasks/t6.json"]:
-    debug = False
-    #for fn in ['tasks/t4.json']: #, 'tasks/t6.json', 'tasks/t7.json']:
-    for fn in get_fns():
+    debug = True
+    for fn in ['tasks/t5.json']: #, 'tasks/t6.json', 'tasks/t7.json']:
+    #for fn in get_fns():
         #print("======>>>>> TASK: " + fn)
         
         # TODO: Красивый вывод? (отступы, может быть)

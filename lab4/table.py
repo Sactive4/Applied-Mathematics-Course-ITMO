@@ -72,9 +72,9 @@ class Table:
 
             # Разделим строку на коэффициент при базисной переменной,
             # чтобы коэффициент стал равен 1
-            print(basis_row_i, basis_var + 1)
-            print(self.table[basis_row_i, basis_var + 1])
-            print(self.table)
+            # print(basis_row_i, basis_var + 1)
+            # print(self.table[basis_row_i, basis_var + 1])
+            # print(self.table)
 
             if not np.isclose(self.table[basis_row_i, basis_var + 1], 0):
                 self.table[basis_row_i] /= self.table[basis_row_i, basis_var + 1]
@@ -137,14 +137,18 @@ class Table:
         return tableau
 
     def solve(self, debug=False, max_iter=100):
-        
+        # None - пропущено
+        # [] - решения не найдено
 
-        print(self.rows)
-        print(self.table)
+        # print(self.rows)
+        # print(self.table)
 
-        self.prepare()
+        try:
+            self.prepare()
+        except NotImplementedError:
+            return None
 
-        print(self.table)
+        # print(self.table)
 
         #return
 
@@ -175,6 +179,7 @@ class Table:
 
             self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
             print(self.table)
+
             #self.table[0, :] = np.divide(self.table[0, :], self.)
             # TODO: привести таблицу в вид, соответствующий стартовой вершине
             #raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
@@ -188,11 +193,12 @@ class Table:
             else:
                 if len(x) == 0:
                     break
+                #print("Answer found.")
                 if debug:
-                    print("Solution found.")
-                return x
+                    print("Answer found.")
+                return x[:(self.n)]
         if debug:
-           print("No solution / Out of iterations.")
+           print("No solution / Out of iterations")
         return []
 
     def next_step(self, debug=False):
@@ -210,7 +216,7 @@ class Table:
 
         # проверим на оптимальность
         if np.all(self.table[-1, 1:] <= eps):
-            return self.v[:(self.n)]
+            return self.v
 
         # начинаем очередную оптимизацию
         # выбираем разрешающий столбец
@@ -258,7 +264,15 @@ class Table:
 
 def solve(fn, debug=False):
     task = Task.load(fn)
-    return Table(task, type=TableType.default).solve(debug), task.answer
+    if task.answer is not None:
+        if not task.check_correct(task.answer):
+            print("Preset answer for this task does not satisfy contstraints.")
+        if task.answer == []:
+            print("Preset answer says there is no solution.")
+    x = Table(task, type=TableType.default).solve(debug)
+    if not task.check_correct(x):
+        print("Warning! Answer is wrong")
+    return x, task.answer
     return Table(task.to_phase1(), type=TableType.default).solve(debug), task.answer
 
 def get_fns():
@@ -268,8 +282,9 @@ def get_fns():
 
 if __name__ == "__main__":
 
-    for fn in ["tasks/t6.json"]:
-    #for fn in get_fns():
+    #for fn in ["tasks/t6.json"]:
+    debug = False
+    for fn in get_fns():
         #print("======>>>>> TASK: " + fn)
         
         # TODO: Красивый вывод? (отступы, может быть)
@@ -278,10 +293,12 @@ if __name__ == "__main__":
         # и см. https://github.com/mmolteratx/Simplex = SinglePhase, там тупо вбить и всё будет круто
         # TODO: написать отчет, в нем отразить всю теорию, этапы работы алгоритма, ответить на вопросы в нем
 
-        print(fn)
-        solution, answer = solve(fn, True)
-        print(solution, answer)
-        if answer is None:
+        #print(">>>", fn)
+        solution, answer = solve(fn, debug)
+        #print(solution, answer)
+        if solution is None:
+            print("... SKIPPED ", fn)
+        elif (answer is None) or len(answer) == 0:
             print("? ", solution, " Add answer to evaluate. ", fn)
         elif np.allclose(solution, answer):
             print("+ ", solution, " OK ", fn)

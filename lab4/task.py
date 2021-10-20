@@ -134,6 +134,30 @@ class Task(BaseModel):
 
         return task
 
+    def check_correct(self, answer):
+        #print(self.constraints)
+        if answer is None:
+            return False
+            
+        for c in self.constraints:
+            #print(np.array(c.a)[:len(answer)])
+            #print(answer)
+            #print(c)
+            v = np.array(c.a)[:len(answer)] @ np.array(answer)
+            #print(answer)
+            #print(v, " ", c.sign, " ", c.b)
+            #print(np.array(c.a)[:len(answer)], " -> ", np.array(answer))
+            if c.sign == ConstraintSign.le:
+                if v > c.b:
+                    return False
+            if c.sign == ConstraintSign.eq:
+                if v != c.b:
+                    return False
+            if c.sign == ConstraintSign.ge:
+                if v < c.b:
+                    return False
+        return True
+
     def to_supplementary(self):
         # TODO: проверить, работает ли правильно
         task = self.copy(deep=True)

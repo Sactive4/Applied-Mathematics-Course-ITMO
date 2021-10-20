@@ -65,8 +65,12 @@ class Table:
         # Выбираем вершину как свободные члены при базисных переменных
         self.v = self._rows_to_v()
     
-    def prepare(self):
+    def prepare(self, debug=True):
         "Полагается, что базис уже задан в self.rows"
+
+        if debug:
+                print(self.table)
+                print("Rows ", self.rows)
 
         for basis_row_i, basis_var in enumerate(self.rows):
 
@@ -79,6 +83,8 @@ class Table:
             if not np.isclose(self.table[basis_row_i, basis_var + 1], 0):
                 self.table[basis_row_i] /= self.table[basis_row_i, basis_var + 1]
             else:
+                if debug:
+                    print("heh. lol!")
                 raise NotImplementedError()
                 # for row in self.table[:-1]:
                 #     if np.isclose(row[basis_var + 1], 0):
@@ -95,8 +101,11 @@ class Table:
                 # переменной, чтобы коэффициент при переменной стал равен 0
                 self.table[row_i] -= self.table[basis_row_i] * basis_var_coef
 
+            if debug:
+                print(self.table)
+                print("Rows ", self.rows)
 
-
+        assert np.all(self.table[:, 0] >= 0), "Свободные коэффициенты стали отрицательными"
 
     def prepare_table(self):
 
@@ -155,7 +164,7 @@ class Table:
                 self.rows = np.array(self.rows)
         
         try:
-            self.prepare()
+            self.prepare(debug)
         except NotImplementedError:
             return None
 
@@ -294,8 +303,9 @@ def get_fns():
 if __name__ == "__main__":
 
     #for fn in ["tasks/t6.json"]:
-    debug = False
-    for fn in get_fns():
+    debug = True
+    for fn in ['tasks/t5.json']: #, 'tasks/t6.json', 'tasks/t7.json']:
+    #for fn in get_fns():
         #print("======>>>>> TASK: " + fn)
         
         # TODO: Красивый вывод? (отступы, может быть)

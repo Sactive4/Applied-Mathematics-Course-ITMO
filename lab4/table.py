@@ -64,10 +64,90 @@ class Table:
         # В self.v храним координаты текущей вершины
         # Выбираем вершину как свободные члены при базисных переменных
         self.v = self._rows_to_v()
+    
+    def prepare(self):
+        "Полагается, что базис уже задан в self.rows"
 
+        for basis_row_i, basis_var in enumerate(self.rows):
+
+            # Разделим строку на коэффициент при базисной переменной,
+            # чтобы коэффициент стал равен 1
+            print(basis_row_i, basis_var + 1)
+            print(self.table[basis_row_i, basis_var + 1])
+            print(self.table)
+
+            if not np.isclose(self.table[basis_row_i, basis_var + 1], 0):
+                self.table[basis_row_i] /= self.table[basis_row_i, basis_var + 1]
+            else:
+                raise NotImplementedError()
+                # for row in self.table[:-1]:
+                #     if np.isclose(row[basis_var + 1], 0):
+                #         continue
+                #     self.table[]
+
+            for row_i in range(self.nrows): # TODO: проверить, что nrows, а не nconstr
+                if row_i == basis_row_i:
+                    continue
+
+                basis_var_coef = self.table[row_i, basis_var + 1]
+                
+                # Вычтем из строки домноженную на коэффициент строку базисной
+                # переменной, чтобы коэффициент при переменной стал равен 0
+                self.table[row_i] -= self.table[basis_row_i] * basis_var_coef
+
+
+
+
+    def prepare_table(self):
+
+        # обнаружить, сколько уже базисных переменных ес
+
+        # construct starting tableau
+        
+        numVar = self.n
+        numArtificial = self.nrows
+        numSlacArtificial = numArtificial # не сработает с неравенствами - посмотреть осторожно
+        
+        t1 = np.hstack(([None], [0], [0] * numVar, [0] * numArtificial))
+                    
+        basis = np.array([0] * numArtificial)
+        
+        for i in range(0, len(basis)):
+            basis[i] = numVar + i
+        
+        A = self.A
+        
+        if(not ((numSlacArtificial + numVar) == len(self.A[0]))):
+            B = np.identity(numArtificial)
+            A = np.hstack((self.A, B))
+            
+        t2 = np.hstack((np.transpose([basis]), np.transpose([self.b]), A))
+        
+        tableau = np.vstack((t1, t2))
+        
+        for i in range(1, len(tableau[0]) - numArtificial):
+            for j in range(1, len(tableau)):
+                if(self.minmax == "MIN"):
+                    tableau[0, i] -= tableau[j, i]
+                else:
+                    tableau[0, i] += tableau[j, i]
+        
+        tableau = np.array(tableau, dtype ='float')
+        
+        return tableau
 
     def solve(self, debug=False, max_iter=100):
         
+
+        print(self.rows)
+        print(self.table)
+
+        self.prepare()
+
+        print(self.table)
+
+        #return
+
         # Если указано, найдем начальную вершину через вспомогательную задачу
         if self.type == TableType.solve_supplementary:
             self.v = Table(self.task.to_supplementary(), type=TableType.default).solve(debug)
@@ -98,6 +178,8 @@ class Table:
             #self.table[0, :] = np.divide(self.table[0, :], self.)
             # TODO: привести таблицу в вид, соответствующий стартовой вершине
             #raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
+
+        #self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
 
         for i in range(max_iter):
             x = self.next_step(debug)
@@ -161,7 +243,8 @@ class Table:
         self.rows[i] = j - 1
 
         # обновим текущую вершину
-        self.v[self.rows[i]] = self._rows_to_v()
+        self.v = self._rows_to_v()
+        #self.v[self.rows[i]] = self._rows_to_v()
 
         # этот сигнал, что нужно идти дальше
         return None
@@ -175,7 +258,8 @@ class Table:
 
 def solve(fn, debug=False):
     task = Task.load(fn)
-    return Table(task, type=TableType.use_start).solve(debug), task.answer
+    return Table(task, type=TableType.default).solve(debug), task.answer
+    return Table(task.to_phase1(), type=TableType.default).solve(debug), task.answer
 
 def get_fns():
     from os import listdir
@@ -184,7 +268,7 @@ def get_fns():
 
 if __name__ == "__main__":
 
-    for fn in ["tasks/t1.json"]:
+    for fn in ["tasks/t6.json"]:
     #for fn in get_fns():
         #print("======>>>>> TASK: " + fn)
         
@@ -194,7 +278,9 @@ if __name__ == "__main__":
         # и см. https://github.com/mmolteratx/Simplex = SinglePhase, там тупо вбить и всё будет круто
         # TODO: написать отчет, в нем отразить всю теорию, этапы работы алгоритма, ответить на вопросы в нем
 
+        print(fn)
         solution, answer = solve(fn, True)
+        print(solution, answer)
         if answer is None:
             print("? ", solution, " Add answer to evaluate. ", fn)
         elif np.allclose(solution, answer):

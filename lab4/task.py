@@ -121,6 +121,19 @@ class Task(BaseModel):
         return task
     
 
+    def to_phase1(self):
+        # TODO: проверить, работает ли правильно
+        task = self.copy(deep=True)
+        task.f = task.f + [0.0] * len(task.constraints)
+
+        for i in range(len(task.constraints)):
+            task.constraints[i].a += [0.0] * len(task.constraints)
+            task.constraints[i].a[len(self.f) + i] = 1.0
+
+        task.type = TaskType.min
+
+        return task
+
     def to_supplementary(self):
         # TODO: проверить, работает ли правильно
         task = self.copy(deep=True)
@@ -129,6 +142,8 @@ class Task(BaseModel):
         for i in range(len(task.constraints)):
             task.constraints[i].a += [0.0] * len(task.constraints)
             task.constraints[i].a[len(self.f) + i] = 1.0
+
+        task.type = TaskType.min
 
         return task
 

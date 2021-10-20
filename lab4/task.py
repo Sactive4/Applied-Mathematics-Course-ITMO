@@ -48,7 +48,7 @@ class Task(BaseModel):
     type: TaskType
     f: list[float]
     constraints: list[Constraint]
-    start: Optional[list[float]]
+    start: list[float] = None
     answer: list[float] = None
 
 
@@ -138,7 +138,7 @@ class Task(BaseModel):
         #print(self.constraints)
         if answer is None:
             return False
-            
+
         for c in self.constraints:
             #print(np.array(c.a)[:len(answer)])
             #print(answer)
@@ -149,12 +149,15 @@ class Task(BaseModel):
             #print(np.array(c.a)[:len(answer)], " -> ", np.array(answer))
             if c.sign == ConstraintSign.le:
                 if v > c.b:
+                    print(v, " ", c.sign, " ", c.b)
                     return False
             if c.sign == ConstraintSign.eq:
-                if v != c.b:
+                if (v - c.b) > 0.00001:
+                    print(v, " ", c.sign, " ", c.b)
                     return False
             if c.sign == ConstraintSign.ge:
                 if v < c.b:
+                    print(v, " ", c.sign, " ", c.b)
                     return False
         return True
 

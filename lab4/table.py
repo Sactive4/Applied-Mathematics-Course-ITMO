@@ -52,7 +52,7 @@ class Table:
         # Заполним целевую функцию
         self.table[-1] = [0] + self.task.f
 
-        self.task.start = np.array(self.task.start)
+        #self.task.start = np.array(self.task.start)
 
         # В self.rows мы храним индексы, соответствующие номеру базисной переменной
         # По умолчанию, принимаем последние self.nconstr переменных
@@ -143,6 +143,17 @@ class Table:
         # print(self.rows)
         # print(self.table)
 
+        #print(self.task.start.shape)
+        if self.type == TableType.use_start:
+            if self.task.start is None:
+                pass
+            else:
+                self.rows = []
+                for i in range(len(self.task.start)):
+                    if self.task.start[i] != 0:
+                        self.rows.append(i)
+                self.rows = np.array(self.rows)
+        
         try:
             self.prepare()
         except NotImplementedError:
@@ -159,7 +170,7 @@ class Table:
             raise NotImplementedError("Сначала проверим =)")
 
         # Если указано, воспользуемся начальной вершиной
-        if self.type == TableType.use_start:
+        if False and self.type == TableType.use_start:
 
             # # записать новые базисные переменные
             # self.rows = []
@@ -269,7 +280,7 @@ def solve(fn, debug=False):
             print("Preset answer for this task does not satisfy contstraints.")
         if task.answer == []:
             print("Preset answer says there is no solution.")
-    x = Table(task, type=TableType.default).solve(debug)
+    x = Table(task, type=TableType.use_start).solve(debug)
     if not task.check_correct(x):
         print("Warning! Answer is wrong")
     return x, task.answer

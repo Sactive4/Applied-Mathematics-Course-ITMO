@@ -77,35 +77,27 @@ class Table:
         # Если указано, воспользуемся начальной вершиной
         if self.type == TableType.use_start:
 
-            print(self.table)
+            # # записать новые базисные переменные
+            # self.rows = []
+            # for y in range(self.task.start.shape[0]):
+            #     if self.task.start[y] != 0:
+            #         self.rows.append(y)
 
-            # записать новые базисные переменные
-            self.rows = []
-            print(self.task.start)
-            for y in range(self.task.start.shape[0]):
-                #print(self.task.start[y])
-                if self.task.start[y] != 0:
-                    self.rows.append(y)
+            # # обновить свободные коэффициенты
+            # self.v = self.task.start
+            # for y in range(self.nconstr):
+            #     if self.v[self.rows[y]] != 0:
+            #         self.table[y, :] /= self.table[y, 0]
+            #         self.table[y, :] *= self.v[self.rows[y]]
 
-            #print(self.v)
-            #print(self.rows)
-            self.v = self.task.start
-            #print(self.v)
-            print("now", self.v)
-            for y in range(self.nconstr):
-                if self.rows[y] != 0:
-                    #print(self.rows[y])
-                    #print(self.v[self.rows[y]])
-                    print(y)
-                    print(self.v[self.rows[y]])
-                    print()
-                    self.table[y, :] /= self.table[y, 0]
-                    self.table[y, :] *= self.task.start[y]
+            print(self.v)
+            print(self.rows)
 
+            self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
             print(self.table)
             #self.table[0, :] = np.divide(self.table[0, :], self.)
             # TODO: привести таблицу в вид, соответствующий стартовой вершине
-            raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
+            #raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
 
         for i in range(max_iter):
             x = self.next_step(debug)
@@ -165,10 +157,11 @@ class Table:
                 self.table[x, :] -= (self.table[x, j] / self.table[i, j]) * self.table[i, :] 
 
         # перезапишем новую базисную переменную
+        #self.v[self.rows[i]] = 0
         self.rows[i] = j - 1
 
         # обновим текущую вершину
-        self.v = self._rows_to_v()
+        self.v[self.rows[i]] = self._rows_to_v()
 
         # этот сигнал, что нужно идти дальше
         return None
@@ -201,7 +194,7 @@ if __name__ == "__main__":
         # и см. https://github.com/mmolteratx/Simplex = SinglePhase, там тупо вбить и всё будет круто
         # TODO: написать отчет, в нем отразить всю теорию, этапы работы алгоритма, ответить на вопросы в нем
 
-        solution, answer = solve(fn)
+        solution, answer = solve(fn, True)
         if answer is None:
             print("? ", solution, " Add answer to evaluate. ", fn)
         elif np.allclose(solution, answer):

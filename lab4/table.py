@@ -105,7 +105,7 @@ class Table:
                 print(self.table)
                 print("Rows ", self.rows)
 
-        assert np.all(self.table[:, 0] >= 0), "Свободные коэффициенты стали отрицательными"
+        assert np.all(self.table[:-1, 0] >= 0), "Свободные коэффициенты стали отрицательными"
 
     def prepare_table(self):
 

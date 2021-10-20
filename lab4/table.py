@@ -57,13 +57,18 @@ class Table:
         # В self.rows мы храним индексы, соответствующие номеру базисной переменной
         # По умолчанию, принимаем последние self.nconstr переменных
         # если мы явно не вводили новые переменные, то присвоим просто следующие виртуальные номера
+
         self.rows = np.arange(self.nvars - self.nconstr, self.nvars)
         for i in range(self.nconstr):
             self.rows[i] = self.nvars - self.nconstr + i
 
+        #print(self.rows)
+
         # В self.v храним координаты текущей вершины
         # Выбираем вершину как свободные члены при базисных переменных
+        self.v = np.zeros(shape=(self.nvars))
         self.v = self._rows_to_v()
+        #print(self.v)
     
     def prepare(self, debug=True):
         "Полагается, что базис уже задан в self.rows"
@@ -74,22 +79,19 @@ class Table:
 
         for basis_row_i, basis_var in enumerate(self.rows):
 
-            # Разделим строку на коэффициент при базисной переменной,
-            # чтобы коэффициент стал равен 1
-            # print(basis_row_i, basis_var + 1)
-            # print(self.table[basis_row_i, basis_var + 1])
-            # print(self.table)
-
-            if not np.isclose(self.table[basis_row_i, basis_var + 1], 0):
-                self.table[basis_row_i] /= self.table[basis_row_i, basis_var + 1]
+            for row_i in range(basis_row_i, self.nconstr):
+                if not np.isclose(self.table[row_i, basis_var + 1], 0):
+                    break
             else:
-                if debug:
-                    print("heh. lol!")
-                raise NotImplementedError()
-                # for row in self.table[:-1]:
-                #     if np.isclose(row[basis_var + 1], 0):
-                #         continue
-                #     self.table[]
+                raise ValueError(
+                    f"Could not find a row with non-zero x{basis_var}"
+                )
+            
+            if row_i != basis_row_i:
+                self.table[row_i], self.table[basis_row_i] = \
+                    self.table[basis_row_i].copy(), self.table[row_i].copy()
+
+            self.table[basis_row_i] /= self.table[basis_row_i, basis_var + 1]
 
             for row_i in range(self.nrows): # TODO: проверить, что nrows, а не nconstr
                 if row_i == basis_row_i:
@@ -104,46 +106,17 @@ class Table:
             if debug:
                 print(self.table)
                 print("Rows ", self.rows)
+        
+        # for row_i in range(self.nconstr):
+        #     if self.table[row_i, 0] < 0:
+        #         coef = self.table[row_i, 0] / self.table[-1, 0]
+        #         self.table[row_i] -= self.table[-1] * coef
+        
+        # if debug:
+        #     print(self.table)
+        #     print("Rows ", self.rows)
 
-        assert np.all(self.table[:-1, 0] >= 0), "Свободные коэффициенты стали отрицательными"
-
-    def prepare_table(self):
-
-        # обнаружить, сколько уже базисных переменных ес
-
-        # construct starting tableau
-        
-        numVar = self.n
-        numArtificial = self.nrows
-        numSlacArtificial = numArtificial # не сработает с неравенствами - посмотреть осторожно
-        
-        t1 = np.hstack(([None], [0], [0] * numVar, [0] * numArtificial))
-                    
-        basis = np.array([0] * numArtificial)
-        
-        for i in range(0, len(basis)):
-            basis[i] = numVar + i
-        
-        A = self.A
-        
-        if(not ((numSlacArtificial + numVar) == len(self.A[0]))):
-            B = np.identity(numArtificial)
-            A = np.hstack((self.A, B))
-            
-        t2 = np.hstack((np.transpose([basis]), np.transpose([self.b]), A))
-        
-        tableau = np.vstack((t1, t2))
-        
-        for i in range(1, len(tableau[0]) - numArtificial):
-            for j in range(1, len(tableau)):
-                if(self.minmax == "MIN"):
-                    tableau[0, i] -= tableau[j, i]
-                else:
-                    tableau[0, i] += tableau[j, i]
-        
-        tableau = np.array(tableau, dtype ='float')
-        
-        return tableau
+        # assert np.all(self.table[:-1, 0] >= 0), "Свободные коэффициенты стали отрицательными"
 
     def solve(self, debug=False, max_iter=100):
         # None - пропущено
@@ -153,58 +126,82 @@ class Table:
         # print(self.table)
 
         #print(self.task.start.shape)
-        if self.type == TableType.use_start:
-            if self.task.start is None:
-                pass
-            else:
-                self.rows = []
-                for i in range(len(self.task.start)):
-                    if self.task.start[i] != 0:
-                        self.rows.append(i)
-                self.rows = np.array(self.rows)
+
+        #print(self.v)
+
+        # Выбираем начальную вершину
+        if self.type == TableType.use_start and not(self.task.start is None):
+            self.rows = []
+            for y in range(len(self.task.start)):
+                if self.task.start[y] != 0:
+                    self.rows.append(y)
+            self.rows = np.array(self.rows)
+            self.v = self._rows_to_v()
+            assert len(self.rows) == self.nconstr, "Начальная вершина некорректная"
+        elif self.type != TableType.solve_supplementary:
+            pass
+            #print(self.v)
+            #self.v = Table(self.task.to_supplementary(), type=TableType.solve_supplementary).solve(debug)
+            #print("my initial point is ", self.v)
+
+        #print(self.v)
+
+        #print("motherfucker v ", self.v)
+        self.v = np.array(self.v)
+
+        # Инициализируем таблицу для начальной вершины
+        #print("Initial rows ", self.rows)
+
         
-        try:
-            self.prepare(debug)
-        except NotImplementedError:
-            return None
+    
+        #print(self.rows)
+        # print(self.type)
+        # print(self.v)
+
+        # Приводим матрицу к базису
+        if self.type != TableType.solve_supplementary:
+            try:
+                self.prepare(debug)
+            except Exception:
+                return None
 
         # print(self.table)
 
         #return
 
-        # Если указано, найдем начальную вершину через вспомогательную задачу
-        if self.type == TableType.solve_supplementary:
-            self.v = Table(self.task.to_supplementary(), type=TableType.default).solve(debug)
-            # TODO: проверить, работает ли эта вещь
-            raise NotImplementedError("Сначала проверим =)")
+        # # Если указано, найдем начальную вершину через вспомогательную задачу
+        # if self.type == TableType.solve_supplementary:
+        #     self.v = Table(self.task.to_supplementary(), type=TableType.default).solve(debug)
+        #     # TODO: проверить, работает ли эта вещь
+        #     raise NotImplementedError("Сначала проверим =)")
 
-        # Если указано, воспользуемся начальной вершиной
-        if False and self.type == TableType.use_start:
+        # # Если указано, воспользуемся начальной вершиной
+        # if False and self.type == TableType.use_start:
 
-            # # записать новые базисные переменные
-            # self.rows = []
-            # for y in range(self.task.start.shape[0]):
-            #     if self.task.start[y] != 0:
-            #         self.rows.append(y)
+        #     # # записать новые базисные переменные
+        #     # self.rows = []
+        #     # for y in range(self.task.start.shape[0]):
+        #     #     if self.task.start[y] != 0:
+        #     #         self.rows.append(y)
 
-            # # обновить свободные коэффициенты
-            # self.v = self.task.start
-            # for y in range(self.nconstr):
-            #     if self.v[self.rows[y]] != 0:
-            #         self.table[y, :] /= self.table[y, 0]
-            #         self.table[y, :] *= self.v[self.rows[y]]
+        #     # # обновить свободные коэффициенты
+        #     # self.v = self.task.start
+        #     # for y in range(self.nconstr):
+        #     #     if self.v[self.rows[y]] != 0:
+        #     #         self.table[y, :] /= self.table[y, 0]
+        #     #         self.table[y, :] *= self.v[self.rows[y]]
 
-            print(self.v)
-            print(self.rows)
+        #     print(self.v)
+        #     print(self.rows)
 
-            self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
-            print(self.table)
+        #     self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
+        #     print(self.table)
 
-            #self.table[0, :] = np.divide(self.table[0, :], self.)
-            # TODO: привести таблицу в вид, соответствующий стартовой вершине
-            #raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
+        #     #self.table[0, :] = np.divide(self.table[0, :], self.)
+        #     # TODO: привести таблицу в вид, соответствующий стартовой вершине
+        #     #raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
 
-        #self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
+        # #self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
 
         for i in range(max_iter):
             x = self.next_step(debug)
@@ -276,9 +273,12 @@ class Table:
         return None
 
     def _rows_to_v(self):
-        v = np.zeros(shape=(self.n))
+        #print("blyat ", self.nvars, " ", self.nconstr, " ", self.rows)
+        v = np.zeros(shape=(self.v.shape[0]))
+        #print(self.nconstr)
         for x in range(self.nconstr):
-            if self.rows[x] < self.n:
+            #print(self.rows[x])
+            if self.rows[x] < self.nvars:
                 v[self.rows[x]] = self.table[x, 0]
         return v
 
@@ -298,14 +298,16 @@ def solve(fn, debug=False):
 def get_fns():
     from os import listdir
     from os.path import isfile, join
-    return ["tasks/" + f for f in listdir("./tasks/") if isfile(join("./tasks/", f))]
+    return sorted(
+        ["tasks/" + f for f in listdir("./tasks/") if isfile(join("./tasks/", f))]
+    )
 
 if __name__ == "__main__":
 
     #for fn in ["tasks/t6.json"]:
-    debug = True
-    for fn in ['tasks/t5.json']: #, 'tasks/t6.json', 'tasks/t7.json']:
-    #for fn in get_fns():
+    debug = False
+    #for fn in ['tasks/t4.json']: #, 'tasks/t6.json', 'tasks/t7.json']:
+    for fn in get_fns():
         #print("======>>>>> TASK: " + fn)
         
         # TODO: Красивый вывод? (отступы, может быть)

@@ -51,7 +51,9 @@ class Table:
 
         # Заполним целевую функцию
         self.table[-1] = [0] + self.task.f
-        
+
+        self.task.start = np.array(self.task.start)
+
         # В self.rows мы храним индексы, соответствующие номеру базисной переменной
         # По умолчанию, принимаем последние self.nconstr переменных
         # если мы явно не вводили новые переменные, то присвоим просто следующие виртуальные номера
@@ -74,7 +76,34 @@ class Table:
 
         # Если указано, воспользуемся начальной вершиной
         if self.type == TableType.use_start:
+
+            print(self.table)
+
+            # записать новые базисные переменные
+            self.rows = []
+            print(self.task.start)
+            for y in range(self.task.start.shape[0]):
+                #print(self.task.start[y])
+                if self.task.start[y] != 0:
+                    self.rows.append(y)
+
+            #print(self.v)
+            #print(self.rows)
             self.v = self.task.start
+            #print(self.v)
+            print("now", self.v)
+            for y in range(self.nconstr):
+                if self.rows[y] != 0:
+                    #print(self.rows[y])
+                    #print(self.v[self.rows[y]])
+                    print(y)
+                    print(self.v[self.rows[y]])
+                    print()
+                    self.table[y, :] /= self.table[y, 0]
+                    self.table[y, :] *= self.task.start[y]
+
+            print(self.table)
+            #self.table[0, :] = np.divide(self.table[0, :], self.)
             # TODO: привести таблицу в вид, соответствующий стартовой вершине
             raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
 
@@ -153,7 +182,7 @@ class Table:
 
 def solve(fn, debug=False):
     task = Task.load(fn)
-    return Table(task).solve(debug), task.answer
+    return Table(task, type=TableType.use_start).solve(debug), task.answer
 
 def get_fns():
     from os import listdir
@@ -162,7 +191,8 @@ def get_fns():
 
 if __name__ == "__main__":
 
-    for fn in get_fns():
+    for fn in ["tasks/t1.json"]:
+    #for fn in get_fns():
         #print("======>>>>> TASK: " + fn)
         
         # TODO: Красивый вывод? (отступы, может быть)

@@ -139,128 +139,46 @@ class Table:
             #print(self.task)
             #assert self.task.check_correct(self.task.start), "Начальная вершина некорректная"
 
-            self.rows = []
-            for y in range(len(self.task.start)):
-                if self.task.start[y] != 0:
-                    self.rows.append(y)
-            self.rows = np.array(self.rows)
+            self.rows = self._v_to_rows(self.task.start)
             self.v = self._rows_to_v()
             assert len(self.rows) == self.nconstr, "Начальная вершина некорректная"
 
         elif self.type != TableType.solve_supplementary:
-            
-            #print(self.v)
-            task_sup = self.task.to_supplementary()
+            # решаем вспомогательную задачу, если уже не решаем
 
+            task_sup = self.task.to_supplementary()
             table_sup = Table(task_sup, type=TableType.use_start)
             table_sup.table[-1, 0] = np.sum(table_sup.table[:-1, 0])
-            #print("SOLVING SUP")
-            self.task.start = table_sup.solve(debug, max_iter = 5, run_as_supplementary=True)
 
+            # найдем начальную вершину и выберем базис из вспомогательной задачи
+            solution_sup = table_sup.solve(debug, max_iter = 5, run_as_supplementary=True)
             self.rows = np.copy(table_sup.rows)
-            #print("SOLVING STOPPED SUP")
-           #print(table_sup.table)
-
-            #print(self.task.start)
             assert task_sup.check_correct(self.task.start), "Начальная вершина некорректная"
-
-            #print(self.task)
-            #print(self.n)
-            #print("xxx ", self.task.start)
-
-            self.task.start = self.task.start[:self.n]
-            #print(self.table)
-            #print(self.task.start)
-
-            #print("xxx2 ", self.task.start)
-            #print(self.task.start)
-            #print(self.rows)
-
-            # self.rows = []
-            # for y in range(len(self.task.start)):
-            #     if self.task.start[y] != 0:
-            #         self.rows.append(y)
-            # self.rows = np.array(self.rows)
-            #self.v = self._rows_to_v()
-
-            #print(self.rows)
+            self.task.start = solution[:self.n]
+            
             self.v = self._rows_to_v()
-            #print(self.v)
-            assert len(self.rows) == self.nconstr, "Начальная вершина некорректная"
 
             #print("my initial point is ", self.v)
 
-        #print(self.v)
 
-        #print("motherfucker v ", self.v)
+
+        
+
         self.v = np.array(self.v)
 
         if not run_as_supplementary:
             self.table[-1, 0] = self.v @ self.table[-1, 1:]
 
-
-        #print("trunq ", self.v)
-        """
-        [[  0.   1.   1.  -1. -10.   1.   0.]
-        [ 11.   1.  14.  10. -10.   0.   1.]
-        [  0.  -0.  -0.  -0.  -0.  -1.  -1.]]
-        """
-        # Инициализируем таблицу для начальной вершины
-        #print("Initial rows ", self.rows)
-        
-    
-        #print(self.rows)
-        # print(self.type)
-        # print(self.v)
-
-        # Приводим матрицу к базису
+        # Приводим матрицу к базису self.rows
         if self.type != TableType.solve_supplementary:
             try:
                 self.prepare(debug)
             except Exception:
                 return None
 
+        # Обновим текущую начальную вершину
         self.v = self._rows_to_v()
 
-        # print(self.table)
-
-        #return
-
-        # # Если указано, найдем начальную вершину через вспомогательную задачу
-        # if self.type == TableType.solve_supplementary:
-        #     self.v = Table(self.task.to_supplementary(), type=TableType.default).solve(debug)
-        #     # TODO: проверить, работает ли эта вещь
-        #     raise NotImplementedError("Сначала проверим =)")
-
-        # # Если указано, воспользуемся начальной вершиной
-        # if False and self.type == TableType.use_start:
-
-        #     # # записать новые базисные переменные
-        #     # self.rows = []
-        #     # for y in range(self.task.start.shape[0]):
-        #     #     if self.task.start[y] != 0:
-        #     #         self.rows.append(y)
-
-        #     # # обновить свободные коэффициенты
-        #     # self.v = self.task.start
-        #     # for y in range(self.nconstr):
-        #     #     if self.v[self.rows[y]] != 0:
-        #     #         self.table[y, :] /= self.table[y, 0]
-        #     #         self.table[y, :] *= self.v[self.rows[y]]
-
-        #     print(self.v)
-        #     print(self.rows)
-
-        #     self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
-        #     print(self.table)
-
-        #     #self.table[0, :] = np.divide(self.table[0, :], self.)
-        #     # TODO: привести таблицу в вид, соответствующий стартовой вершине
-        #     #raise NotImplementedError("Нужно привести таблицу в соответствии с этой вершиной")
-
-        # #self.table[-1, 0] = np.array(self.task.f).T @ np.array(self.v)
-
-        #print("lovalova ", self.table)
         for i in range(max_iter):
             x = self.next_step(debug)
             if x is None:
@@ -268,7 +186,6 @@ class Table:
             else:
                 if len(x) == 0:
                     break
-                #print("Answer found.")
                 if debug:
                     print("Answer found.")
                 return x[:(self.n)]
@@ -319,25 +236,30 @@ class Table:
                 self.table[x, :] -= (self.table[x, j] / self.table[i, j]) * self.table[i, :] 
 
         # перезапишем новую базисную переменную
-        #self.v[self.rows[i]] = 0
         self.rows[i] = j - 1
 
         # обновим текущую вершину
         self.v = self._rows_to_v()
-        #self.v[self.rows[i]] = self._rows_to_v()
 
         # этот сигнал, что нужно идти дальше
         return None
 
     def _rows_to_v(self):
-        #print("blyat ", self.nvars, " ", self.nconstr, " ", self.rows)
+        """ по выбранным базисным переменным self.rows 
+            восстановить текущую вершину
+        """
         v = np.zeros(shape=(self.v.shape[0]))
-        #print(self.nconstr)
         for x in range(self.nconstr):
-            #print(self.rows[x])
             if self.rows[x] < self.nvars:
                 v[self.rows[x]] = self.table[x, 0]
         return v
+
+    def _v_to_rows(self, v):
+        rows = []
+        for y in range(len(v)):
+            if v[y] != 0:
+                rows.append(y)
+        return np.array(rows)
 
 def solve(fn, debug=False):
     task = Task.load(fn)
@@ -363,22 +285,11 @@ def get_fns():
 
 if __name__ == "__main__":
 
-    #for fn in ["tasks/t6.json"]:
     debug = False
-    #for fn in ['tasks/t7.json']: #, 'tasks/t6.json', 'tasks/t7.json']:
     for fn in get_fns():
-        #print("======>>>>> TASK: " + fn)
-        
-        # TODO: Красивый вывод? (отступы, может быть)
-        # TODO: Добавить во все файлы ответы, их можно посчитать через онлайн сервисы
-        # или см. https://mattmolter.medium.com/creating-a-linear-program-solver-by-implementing-the-simplex-method-in-python-with-numpy-22f4cbb9b6db
-        # и см. https://github.com/mmolteratx/Simplex = SinglePhase, там тупо вбить и всё будет круто
-        # TODO: написать отчет, в нем отразить всю теорию, этапы работы алгоритма, ответить на вопросы в нем
 
-        print(">>>", fn)
         solution, answer, value1, value2 = solve(fn, debug)
 
-        #print(solution, answer)
         if solution is None:
             print("... SKIPPED ", fn)
         elif (answer is None) or len(answer) == 0:

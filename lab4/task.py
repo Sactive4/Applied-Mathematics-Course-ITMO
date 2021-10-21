@@ -177,12 +177,14 @@ class Task(BaseModel):
             #task.f[0] += task.constraints[i].b
             task.f[:] += task.constraints[i].a
 
-        task.type = TaskType.min # TODO: поменять на макс, ошибка в знаках
+        task.type = TaskType.max # TODO: поменять на макс, ошибка в знаках
         task.start = [0.0] * (len(task.f) - len(task.constraints)) + [1.0] * len(task.constraints)
         
-        task.f[- len(task.constraints):] = 0.0
+        #task.f[1:] *= -1.0
 
-        print(task.f)
+        for i in range(len(task.constraints)):
+            task.f[-(i + 1)] = 0.0
+        #task.f[- len(task.constraints):] = 0.0
 
         return task
 

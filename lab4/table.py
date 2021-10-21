@@ -94,7 +94,7 @@ class Table:
                 print("Rows ", self.rows)
     
 
-    def solve(self, debug=False, max_iter=100, run_as_supplementary=True):
+    def solve(self, debug=False, max_iter=100, run_as_supplementary=False):
         # None - пропущено
         # [] - решения не найдено
 

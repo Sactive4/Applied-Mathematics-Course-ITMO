@@ -52,24 +52,9 @@ class Table:
         # Заполним целевую функцию
         self.table[-1, 1:] = self.task.f
 
-
-        #self.task.start = np.array(self.task.start)
-
-        # В self.rows мы храним индексы, соответствующие номеру базисной переменной
-        # По умолчанию, принимаем последние self.nconstr переменных
-        # если мы явно не вводили новые переменные, то присвоим просто следующие виртуальные номера
-
-        self.rows = np.arange(self.nvars - self.nconstr, self.nvars)
-        for i in range(self.nconstr):
-            self.rows[i] = self.nvars - self.nconstr + i
-
-        #print(self.rows)
-
-        # В self.v храним координаты текущей вершины
-        # Выбираем вершину как свободные члены при базисных переменных
+        # Пока проинициализируем пустые массивы для базисных переменных и вершины
         self.v = np.zeros(shape=(self.nvars))
-        self.v = self._rows_to_v()
-        #print(self.v)
+        self.rows = np.zeros(shape=(self.nconstr))
     
     def prepare(self, debug=True):
         "Полагается, что базис уже задан в self.rows"
@@ -107,45 +92,20 @@ class Table:
             if debug:
                 print(self.table)
                 print("Rows ", self.rows)
-        
-        # for row_i in range(self.nconstr):
-        #     if self.table[row_i, 0] < 0:
-        #         coef = self.table[row_i, 0] / self.table[-1, 0]
-        #         self.table[row_i] -= self.table[-1] * coef
-        
-        # if debug:
-        #     print(self.table)
-        #     print("Rows ", self.rows)
-
-        # assert np.all(self.table[:-1, 0] >= 0), "Свободные коэффициенты стали отрицательными"
+    
 
     def solve(self, debug=False, max_iter=100, run_as_supplementary=True):
         # None - пропущено
         # [] - решения не найдено
 
-        # print(self.rows)
-        # print(self.table)
-
-        #print(self.task.start.shape)
-
-        #print(self.v)
-
-        #print(self.table)
-
         # Выбираем начальную вершину
         if self.type == TableType.use_start and not(self.task.start is None):
-
-            #print(self.task.start)
-            #print(self.task)
-            #assert self.task.check_correct(self.task.start), "Начальная вершина некорректная"
-
+            # если указана стартовая вершина или есть указание решать
             self.rows = self._v_to_rows(self.task.start)
             self.v = self._rows_to_v()
             assert len(self.rows) == self.nconstr, "Начальная вершина некорректная"
-
         elif self.type != TableType.solve_supplementary:
-            # решаем вспомогательную задачу, если уже не решаем
-
+            # решаем вспомогательную задачу, если еще не решаем
             task_sup = self.task.to_supplementary()
             table_sup = Table(task_sup, type=TableType.use_start)
             table_sup.table[-1, 0] = np.sum(table_sup.table[:-1, 0])
@@ -153,19 +113,21 @@ class Table:
             # найдем начальную вершину и выберем базис из вспомогательной задачи
             solution_sup = table_sup.solve(debug, max_iter = 5, run_as_supplementary=True)
             self.rows = np.copy(table_sup.rows)
-            assert task_sup.check_correct(self.task.start), "Начальная вершина некорректная"
-            self.task.start = solution[:self.n]
-            
-            self.v = self._rows_to_v()
-
-            #print("my initial point is ", self.v)
-
-
-
+            assert task_sup.check_correct(solution_sup), "Начальная вершина некорректная"
+            self.task.start = solution_sup[:self.n]
         
+        elif self.type == TableType.default:
+            # В self.rows мы храним индексы, соответствующие номеру базисной переменной
+            # По умолчанию, принимаем последние self.nconstr переменных
+            # если мы явно не вводили новые переменные, то присвоим просто следующие виртуальные номера
 
-        self.v = np.array(self.v)
+            self.rows = np.arange(self.nvars - self.nconstr, self.nvars)
+            for i in range(self.nconstr):
+                self.rows[i] = self.nvars - self.nconstr + i
 
+        # Если мы сейчас решаем вспомогательную задачу,
+        # нужно заполнить значение целевой функции
+        # как сумму базисных переменных
         if not run_as_supplementary:
             self.table[-1, 0] = self.v @ self.table[-1, 1:]
 
@@ -255,26 +217,33 @@ class Table:
         return v
 
     def _v_to_rows(self, v):
+        """ по стартовой вершине определить базисные
+            переменные
+        """
         rows = []
         for y in range(len(v)):
             if v[y] != 0:
                 rows.append(y)
         return np.array(rows)
 
-def solve(fn, debug=False):
+def solve(fn, debug=False, use_start=False):
     task = Task.load(fn)
     if task.answer is not None:
         if not task.check_correct(task.answer):
             print("Preset answer for this task does not satisfy contstraints.")
         if task.answer == []:
             print("Preset answer says there is no solution.")
-    x = Table(task, type=TableType.use_start).solve(debug)
+   
+    if use_start:
+        x = Table(task, type=TableType.use_start).solve(debug)
+    else:
+        x = Table(task).solve(debug)
+
     value1 = x @ task.f
     value2 = np.array(task.answer) @ task.f
     if not task.check_correct(x):
         print("Warning! Answer is wrong")
     return x, task.answer, value1, value2
-    return Table(task.to_phase1(), type=TableType.default).solve(debug), task.answer
 
 def get_fns():
     from os import listdir
@@ -286,16 +255,22 @@ def get_fns():
 if __name__ == "__main__":
 
     debug = False
-    for fn in get_fns():
-
-        solution, answer, value1, value2 = solve(fn, debug)
-
-        if solution is None:
-            print("... SKIPPED ", fn)
-        elif (answer is None) or len(answer) == 0:
-            print("? ", solution, " Add answer to evaluate. ", fn)
-        elif np.allclose(solution, answer) or abs(value1 - value2) < 0.00001:
-            print("+ ", solution, " OK ", fn)
+    for use_start in [True, False]:
+        if use_start:
+            print("Now using initial feasible solutions, if availble.")
         else:
-            print("- ", solution, " WRONG ", fn)
+            print("Now solving with supplementary task.")
+
+        for fn in get_fns():
+
+            solution, answer, value1, value2 = solve(fn, debug,use_start=use_start)
+
+            if solution is None:
+                print("... SKIPPED ", fn)
+            elif (answer is None) or len(answer) == 0:
+                print("? ", solution, " Add answer to evaluate. ", fn)
+            elif np.allclose(solution, answer) or abs(value1 - value2) < 0.00001:
+                print("+ ", solution, " OK ", fn)
+            else:
+                print("- ", solution, " WRONG ", fn)
     

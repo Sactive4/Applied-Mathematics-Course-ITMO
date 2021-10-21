@@ -121,32 +121,12 @@ class Task(BaseModel):
         return task
     
 
-    def to_phase1(self):
-        # TODO: проверить, работает ли правильно
-        task = self.copy(deep=True)
-        task.f = task.f + [0.0] * len(task.constraints)
-
-        for i in range(len(task.constraints)):
-            task.constraints[i].a += [0.0] * len(task.constraints)
-            task.constraints[i].a[len(self.f) + i] = 1.0
-
-        task.type = TaskType.min
-
-        return task
-
     def check_correct(self, answer):
-        #print(self.constraints)
         if answer is None:
             return False
 
         for c in self.constraints:
-            #print(np.array(c.a)[:len(answer)])
-            #print(answer)
-            #print(c)
             v = np.array(c.a)[:len(answer)] @ np.array(answer)
-            #print(answer)
-            #print(v, " ", c.sign, " ", c.b)
-            #print(np.array(c.a)[:len(answer)], " -> ", np.array(answer))
             if c.sign == ConstraintSign.le:
                 if v > c.b:
                     print(v, " ", c.sign, " ", c.b)
@@ -162,29 +142,22 @@ class Task(BaseModel):
         return True
 
     def to_supplementary(self):
-        # TODO: проверить, работает ли правильно
+        # возвращает задачу, вспомогательную для исходной
+        # обратите внимание, что значение целевой функции
+        # заполняется в Table.solve(run_as_supplementary=True)
         task = self.copy(deep=True)
-
-        #task.f = [0.0] * len(task.f) + [1.0] * len(task.constraints)
         task.f = np.array([0.0] * len(task.f) + [0.0] * len(task.constraints))
 
         for i in range(len(task.constraints)):
             task.constraints[i].a += [0.0] * len(task.constraints)
             task.constraints[i].a[len(self.f) + i] = 1.0
-            #task.constraints[i].b = 
-            # print(task.f)
-            # print(task.constraints[i].a)
-            #task.f[0] += task.constraints[i].b
             task.f[:] += task.constraints[i].a
 
         task.type = TaskType.max # TODO: поменять на макс, ошибка в знаках
         task.start = [0.0] * (len(task.f) - len(task.constraints)) + [1.0] * len(task.constraints)
-        
-        #task.f[1:] *= -1.0
 
         for i in range(len(task.constraints)):
             task.f[-(i + 1)] = 0.0
-        #task.f[- len(task.constraints):] = 0.0
 
         return task
 

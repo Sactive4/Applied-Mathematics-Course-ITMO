@@ -1,14 +1,10 @@
-# Task solution
 import json
 
-# import numpy as np
-import scipy.optimize
 import numpy as np
 
 from pydantic import BaseModel
 from enum import Enum
 from math import isclose
-from typing import Optional
 
 
 class TaskType(str, Enum):
@@ -48,7 +44,7 @@ class Task(BaseModel):
     type: TaskType
     f: list[float]
     constraints: list[Constraint]
-    start: Optional[list[float]]
+    start: list[float] = None
     answer: list[float] = None
 
 
@@ -65,6 +61,7 @@ class Task(BaseModel):
 
         self.f = [-x for x in self.f]
         self.type = TaskType.min
+
 
     def to_max_in_place(self):
         if self.type is TaskType.max:
@@ -115,19 +112,53 @@ class Task(BaseModel):
         for c in task.constraints:
             if c.b < 0:
                 c.mul_in_place(-1)
-        
-        # TODO: остальные шаги приведения в канонический вид (?)
+
         return task
     
 
+    def check_correct(self, answer):
+        if answer is None:
+            return False
+
+        for c in self.constraints:
+            v = np.array(c.a)[:len(answer)] @ np.array(answer)
+            if c.sign == ConstraintSign.le:
+                if v > c.b:
+                    print(v, " ", c.sign, " ", c.b)
+                    return False
+            if c.sign == ConstraintSign.eq:
+                if abs(v - c.b) > 0.00001:
+                    print(v, " ", c.sign, " ", c.b)
+                    return False
+            if c.sign == ConstraintSign.ge:
+                if v < c.b:
+                    print(v, " ", c.sign, " ", c.b)
+                    return False
+        return True
+
     def to_supplementary(self):
-        # TODO: проверить, работает ли правильно
+        """
+        Возвращает задачу, вспомогательную для исходной
+        обратите внимание, что значение целевой функции
+        заполняется в Table.solve(run_as_supplementary=True)
+        
+        Исходная задача должна быть в каноническом виде
+        """
+
+        assert self.type is TaskType.max
+
         task = self.copy(deep=True)
-        task.f = [0.0] * len(task.f) + [1.0] * len(task.constraints)
+        task.f = np.array([0.0] * len(task.f) + [0.0] * len(task.constraints))
 
         for i in range(len(task.constraints)):
             task.constraints[i].a += [0.0] * len(task.constraints)
             task.constraints[i].a[len(self.f) + i] = 1.0
+            task.f[:] += task.constraints[i].a
+
+        task.start = [0.0] * (len(task.f) - len(task.constraints)) + [1.0] * len(task.constraints)
+
+        for i in range(len(task.constraints)):
+            task.f[-(i + 1)] = 0.0
 
         return task
 
@@ -151,59 +182,6 @@ class Task(BaseModel):
             lines.append(line)
         
         return "\n".join(lines)
-
-
-"""
-УДАЛЕНА
-мы больше не используем ее, поскольку она ошибается
-в интернете написано, что она так действительно может делать,
-а подключать более стабильные версии мне было лень - там сложно
-"""
-def solve_scipy(task: Task, debug=False):
-    task = task.copy(deep=True)
-    task.to_min_in_place()
-    task.remove_ge_in_place()
-
-    a_eq = np.empty(shape=(0,len(task.f)), dtype=np.float64)
-    b_eq = np.empty(shape=(0,), dtype=np.float64)
-    a_leq = np.empty(shape=(0,len(task.f)), dtype=np.float64)
-    b_leq = np.empty(shape=(0,), dtype=np.float64)
-
-    if debug:
-        print("Solving Numpy:")
-        print(task.f)
-        print(a_eq)
-        print(b_eq)
-        print(a_leq)
-        print(b_leq)
-
-    for c in task.constraints:
-        if c.sign is ConstraintSign.eq:
-            a_eq = np.append(a_eq, np.array([c.a]), axis=0)
-            b_eq = np.append(b_eq, np.array([c.b]), axis=0)
-        elif c.sign is ConstraintSign.le:
-            a_leq = np.concatenate((a_leq, c.a))
-            b_leq = np.concatenate((b_leq, c.b))
-        else:
-            raise ValueError(f"Unexpected constraint sign {c.sign}")
-    
-    if len(a_eq) == 0:
-        a_eq = None
-        b_eq = None
-
-    if len(a_leq) == 0:
-        a_leq = None
-        b_leq = None
-
-    if debug:
-        print("Solving Numpy:")
-        print(task.f)
-        print(a_eq)
-        print(b_eq)
-        print(a_leq)
-        print(b_leq)
-
-    return scipy.optimize.linprog(task.f, A_eq=a_eq, b_eq=b_eq, A_ub=a_leq, b_ub=b_leq, bounds=(0, None))
 
 
 if __name__ == "__main__":

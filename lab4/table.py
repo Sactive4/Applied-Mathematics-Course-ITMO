@@ -1,13 +1,14 @@
 import numpy as np
-from pydantic import BaseModel
 from enum import Enum
 
-from task import Task, solve_scipy
+from task import Task
+
 
 class TableType(str, Enum):
     default = "default"
     solve_supplementary = "solve_supplementary"
     use_start = "use_start"
+
 
 class Table:
 
@@ -53,9 +54,10 @@ class Table:
         self.table[-1, 1:] = self.task.f
 
         # Пока проинициализируем пустые массивы для базисных переменных и вершины
-        self.v = np.zeros(shape=(self.nvars))
-        self.rows = np.zeros(shape=(self.nconstr))
-    
+        self.v = np.zeros(self.nvars)
+        self.rows = np.zeros(self.nconstr)
+
+
     def prepare(self, debug=True):
         "Полагается, что базис уже задан в self.rows"
 
@@ -155,6 +157,7 @@ class Table:
            print("No solution / Out of iterations")
         return []
 
+
     def next_step(self, debug=False):
 
         # Таблица вычисляется для поиска максимума
@@ -206,6 +209,7 @@ class Table:
         # этот сигнал, что нужно идти дальше
         return None
 
+
     def _rows_to_v(self):
         """ по выбранным базисным переменным self.rows 
             восстановить текущую вершину
@@ -216,6 +220,7 @@ class Table:
                 v[self.rows[x]] = self.table[x, 0]
         return v
 
+
     def _v_to_rows(self, v):
         """ по стартовой вершине определить базисные
             переменные
@@ -225,6 +230,7 @@ class Table:
             if v[y] != 0:
                 rows.append(y)
         return np.array(rows)
+
 
 def solve(fn, debug=False, use_start=False):
     task = Task.load(fn)
@@ -245,12 +251,14 @@ def solve(fn, debug=False, use_start=False):
         print("Warning! Answer is wrong")
     return x, task.answer, value1, value2
 
+
 def get_fns():
     from os import listdir
     from os.path import isfile, join
     return sorted(
         ["tasks/" + f for f in listdir("./tasks/") if isfile(join("./tasks/", f))]
     )
+
 
 if __name__ == "__main__":
 

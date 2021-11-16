@@ -31,7 +31,6 @@ class Constraint(BaseModel):
     sign: ConstraintSign
     b: float
 
-
     def mul_in_place(self, k):
         self.a = [x * k for x in self.a]
         self.b *= k
@@ -46,7 +45,6 @@ class Task(BaseModel):
     constraints: list[Constraint]
     start: list[float] = None
     answer: list[float] = None
-
 
     @staticmethod
     def load(filename):

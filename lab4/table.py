@@ -1,7 +1,7 @@
 import numpy as np
 from enum import Enum
 
-from task import Task
+from lab4.task import Task
 
 
 class TableType(str, Enum):
@@ -153,6 +153,22 @@ class Table:
            print("No solution / Out of iterations")
         return []
 
+
+    def get_solution(self):
+        return self.v[:(self.n)]
+
+    def get_dual_solution(self):
+        return self.table[-1][self.n+1:]
+
+    def get_solution_f(self):
+        return self.get_solution() @ self.task.f[:(self.n)]
+
+    def get_dual_solution_f(self):
+        r = 0.0
+        s = self.get_dual_solution()
+        for i, constr in enumerate(self.task.constraints):
+            r += constr.b * s[i]
+        return r
 
     def next_step(self, debug=False):
 

@@ -17,7 +17,7 @@ def solve_game(fn, debug=False):
         return
 
     print("Clean strategy solution:")
-    print("OURS: ", game.get_clean_strategy())
+    print("OURS: ", game.solve_clean())
     print("CORRECT: ", game.answer_clean)
 
     print("Mixed strategy solution:")

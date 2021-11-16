@@ -1,7 +1,7 @@
 import numpy as np
 from enum import Enum
 
-from lab4.task import Task
+from lab4.task import Task, TaskType
 
 
 class TableType(str, Enum):
@@ -34,6 +34,7 @@ class Table:
         self.type = type
         self.n = len(task.f) # число исходных переменных
 
+        self.tasktype_original = task.type
         self.task = task.to_canonical()
         self.nvars = len(self.task.f) # число всех переменных (свободные + базисные)
         self.nconstr = len(self.task.constraints) # число ограничений
@@ -155,13 +156,19 @@ class Table:
 
 
     def get_solution(self):
-        return self.v[:(self.n)]
+        return np.abs(self.v[:(self.n)])
 
     def get_dual_solution(self):
-        return self.table[-1][self.n+1:]
+        if self.tasktype_original == TaskType.min:
+            return -1.0 * self.table[-1][self.n+1:]
+        else:
+            return self.table[-1][self.n+1:]
 
     def get_solution_f(self):
-        return self.get_solution() @ self.task.f[:(self.n)]
+        if self.tasktype_original == TaskType.min:
+            return -1.0 * (self.get_solution() @ self.task.f[:(self.n)])
+        else:
+            return self.get_solution() @ self.task.f[:(self.n)]
 
     def get_dual_solution_f(self):
         r = 0.0

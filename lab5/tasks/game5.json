@@ -3,5 +3,5 @@
   "matrix": [ [8, 4, 6],
               [4, 8, 5] ],
   "answer_clean": [],
-  "answer_simplex": [[],[]]
+  "answer_simplex": [[0.5, 0.5],[0.5, 0.5, 0.0]]
 }

@@ -22,6 +22,7 @@ def find_min_indices(m):
     return min1, s
 
 class Game(BaseModel):
+    instruction: str = ""
     type: str
     matrix: list
     answer_clean: list = None
@@ -81,3 +82,11 @@ class Game(BaseModel):
         P = v * y
         Q = v * x
         return P, Q, v
+
+    def expectation(self, s1, s2):
+        m = np.array(self.matrix)
+        r = 0.0
+        for i in range(len(m)):
+            for j in range(len(m[0])):
+                r += m[i, j] * s1[i] * s2[j]
+        return r

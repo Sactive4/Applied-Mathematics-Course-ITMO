@@ -6,9 +6,16 @@ from lab5.game import Game
 
 
 def solve_game(fn, debug=False):
+    if fn.endswith('.bak'):
+        return
+
     game = Game.load(fn)
 
     print("*********** ", fn, " ***********")
+    if game.instruction == 'find_expectation':
+        print("EXPECTATION: ", game.expectation(game.answer_simplex[0], game.answer_simplex[1]))
+        return
+
     print("Clean strategy solution:")
     print("OURS: ", game.get_clean_strategy())
     print("CORRECT: ", game.answer_clean)
@@ -17,6 +24,8 @@ def solve_game(fn, debug=False):
     s = game.solve_simplex(debug)
     print("OURS: ", s[0], s[1])
     print("CORRECT: ", game.answer_simplex)
+    print("PRICE: ", s[2])
+    print("EXPECTATION: ", game.expectation(s[0], s[1]))
 
 
 

@@ -1,7 +1,7 @@
 {
   "type": "loss",
-  "matrix": [ [4, 2],
-              [2, 3] ],
+  "matrix": [ [7, 2],
+              [1, 11] ],
   "answer_clean": [],
   "answer_simplex": [[], []]
 }

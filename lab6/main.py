@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def analytically_compute_probability_vec(transition_matrix):
@@ -17,11 +16,13 @@ def analytically_compute_probability_vec(transition_matrix):
     return probability_vec
 
 
-def numerically_compute_probability_vec(p, P, eps=0.0001, steps=10 ** 3, calculate_std=False):
+def numerically_compute_probability_vec(
+    p, P, eps=0.0001, steps=10 ** 3, calculate_std=False
+):
     step = 0
     stds = []
 
-    while (not np.abs(np.std(p @ P) - np.std(p)) < eps) and (step <= steps):
+    while not np.abs(np.std(p @ P) - np.std(p)) < eps and step <= steps:
         step += 1
         if calculate_std:
             stds.append(np.abs(np.std(p @ P) - np.std(p)))
@@ -35,6 +36,8 @@ def numerically_compute_probability_vec(p, P, eps=0.0001, steps=10 ** 3, calcula
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
     P = np.array([
         [0.1, 0.3, 0, 0, 0.6, 0, 0, 0],
         [0.4, 0.1, 0, 0, 0.2, 0.1, 0.2, 0],
@@ -49,16 +52,21 @@ if __name__ == "__main__":
     p2 = np.array([0, 1., 0, 0, 0, 0, 0, 0])
 
     # === Test ===
-    num_prob1, stds1 = numerically_compute_probability_vec(p1, P, eps=0.00001, steps=10 ** 3, calculate_std=True)
-    num_prob2, stds2 = numerically_compute_probability_vec(p2, P, eps=0.00001, steps=10 ** 3, calculate_std=True)
+    num_prob1, stds1 = numerically_compute_probability_vec(
+        p1, P, eps=0.00001, steps=10 ** 3, calculate_std=True
+    )
+    num_prob2, stds2 = numerically_compute_probability_vec(
+        p2, P, eps=0.00001, steps=10 ** 3, calculate_std=True
+    )
+    an_prob = analytically_compute_probability_vec(P)
 
+    with np.printoptions(precision=3):
+        print("Numerical solution 1:", num_prob1)
+        print("Numerical solution 1:", num_prob2)
+        print("Analytical solution:", an_prob)
+    
     plt.xlabel('step')
     plt.ylabel('std')
     plt.plot(range(0, len(stds1)), stds1)
     # plt.plot(range(0, len(stds2)), stds2)
     # plt.show()
-
-    with np.printoptions(precision=3):
-        print(num_prob1)
-        print(num_prob2)
-        print(analytically_compute_probability_vec(P))

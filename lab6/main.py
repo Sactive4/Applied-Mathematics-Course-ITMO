@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def analytically_compute_probability_vec(transition_matrix):
@@ -16,17 +17,44 @@ def analytically_compute_probability_vec(transition_matrix):
     return probability_vec
 
 
-def numerically_compute_probability_vec(p, P, eps=0.0001):
-    """
+def numerically_compute_probability_vec(p, P, eps=0.0001, steps=10**3, calculate_std=False):
+    step = 0
+    stds = []
 
-    :param p: начальный вектор состояния
-    :param P: матрица перехода
-    :param eps: точность
-    :return: стационарный вектор
-    """
-    while np.abs(np.std(p @ P) - np.std(p)) >= eps:
+    while (not np.abs(np.std(p @ P) - np.std(p)) < eps) and (step <= steps):
+        step += 1
+        if calculate_std:
+            stds.append(np.abs(np.std(p @ P) - np.std(p)))
+
         p = p @ P
 
-    return p
+    if calculate_std:
+        return p / p.sum(), stds
 
+    return p / p.sum()
 
+P = np.array([
+    [0.1, 0.3, 0, 0, 0.6, 0, 0, 0],
+    [0.4, 0.1, 0, 0, 0.2, 0.1, 0.2, 0],
+    [0, 0.1, 0.2, 0, 0, 0, 0.7, 0],
+    [0, 0, 0, 0.1, 0, 0, 0.4, 0.5],
+    [0.1, 0.2, 0, 0, 0.3, 0.2, 0, 0],
+    [0, 0.1, 0, 0, 0.1, 0.2, 0.6, 0],
+    [0, 0, 0.2, 0.2, 0, 0.3, 0.1, 0.2],
+    [0, 0, 0, 0.2, 0, 0, 0.5, 0.2],
+])
+p1 = np.array([1., 0, 0, 0, 0, 0, 0, 0])
+p2 = np.array([0, 1., 0, 0, 0, 0, 0, 0])
+
+# === Test ===
+num_prob1, stds1 = numerically_compute_probability_vec(p1, P, eps=0.00001, steps=50, calculate_std=True)
+num_prob2, stds2 = numerically_compute_probability_vec(p2, P, eps=0.00001, steps=50, calculate_std=True)
+
+plt.xlabel('step')
+plt.ylabel('std')
+plt.plot(range(0, len(stds1)), stds1)
+#plt.plot(range(0, len(stds2)), stds2)
+plt.show()
+
+print(num_prob1)
+print(stds1)

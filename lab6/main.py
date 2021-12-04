@@ -17,7 +17,7 @@ def analytically_compute_probability_vec(transition_matrix):
     return probability_vec
 
 
-def numerically_compute_probability_vec(p, P, eps=0.0001, steps=10**3, calculate_std=False):
+def numerically_compute_probability_vec(p, P, eps=0.0001, steps=10 ** 3, calculate_std=False):
     step = 0
     stds = []
 
@@ -33,28 +33,32 @@ def numerically_compute_probability_vec(p, P, eps=0.0001, steps=10**3, calculate
 
     return p / p.sum()
 
-P = np.array([
-    [0.1, 0.3, 0, 0, 0.6, 0, 0, 0],
-    [0.4, 0.1, 0, 0, 0.2, 0.1, 0.2, 0],
-    [0, 0.1, 0.2, 0, 0, 0, 0.7, 0],
-    [0, 0, 0, 0.1, 0, 0, 0.4, 0.5],
-    [0.1, 0.2, 0, 0, 0.3, 0.2, 0, 0],
-    [0, 0.1, 0, 0, 0.1, 0.2, 0.6, 0],
-    [0, 0, 0.2, 0.2, 0, 0.3, 0.1, 0.2],
-    [0, 0, 0, 0.2, 0, 0, 0.5, 0.2],
-])
-p1 = np.array([1., 0, 0, 0, 0, 0, 0, 0])
-p2 = np.array([0, 1., 0, 0, 0, 0, 0, 0])
 
-# === Test ===
-num_prob1, stds1 = numerically_compute_probability_vec(p1, P, eps=0.00001, steps=50, calculate_std=True)
-num_prob2, stds2 = numerically_compute_probability_vec(p2, P, eps=0.00001, steps=50, calculate_std=True)
+if __name__ == "__main__":
+    P = np.array([
+        [0.1, 0.3, 0, 0, 0.6, 0, 0, 0],
+        [0.4, 0.1, 0, 0, 0.2, 0.1, 0.2, 0],
+        [0, 0.1, 0.2, 0, 0, 0, 0.7, 0],
+        [0, 0, 0, 0.1, 0, 0, 0.4, 0.5],
+        [0.1, 0.2, 0, 0, 0.3, 0.2, 0, 0],
+        [0, 0.1, 0, 0, 0.1, 0.2, 0.6, 0],
+        [0, 0, 0.2, 0.2, 0, 0.3, 0.1, 0.2],
+        [0, 0, 0, 0.2, 0, 0, 0.5, 0.2],
+    ])
+    p1 = np.array([1., 0, 0, 0, 0, 0, 0, 0])
+    p2 = np.array([0, 1., 0, 0, 0, 0, 0, 0])
 
-plt.xlabel('step')
-plt.ylabel('std')
-plt.plot(range(0, len(stds1)), stds1)
-#plt.plot(range(0, len(stds2)), stds2)
-plt.show()
+    # === Test ===
+    num_prob1, stds1 = numerically_compute_probability_vec(p1, P, eps=0.00001, steps=10 ** 3, calculate_std=True)
+    num_prob2, stds2 = numerically_compute_probability_vec(p2, P, eps=0.00001, steps=10 ** 3, calculate_std=True)
 
-print(num_prob1)
-print(stds1)
+    plt.xlabel('step')
+    plt.ylabel('std')
+    plt.plot(range(0, len(stds1)), stds1)
+    # plt.plot(range(0, len(stds2)), stds2)
+    # plt.show()
+
+    with np.printoptions(precision=3):
+        print(num_prob1)
+        print(num_prob2)
+        print(analytically_compute_probability_vec(P))

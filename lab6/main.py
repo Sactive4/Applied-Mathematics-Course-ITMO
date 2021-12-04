@@ -14,3 +14,19 @@ def analytically_compute_probability_vec(transition_matrix):
     probability_vec = np.linalg.lstsq(equations, ordinate, rcond=None)[0]
 
     return probability_vec
+
+
+def numerically_compute_probability_vec(p, P, eps=0.0001):
+    """
+
+    :param p: начальный вектор состояния
+    :param P: матрица перехода
+    :param eps: точность
+    :return: стационарный вектор
+    """
+    while np.abs(np.std(p @ P) - np.std(p)) >= eps:
+        p = p @ P
+
+    return p
+
+

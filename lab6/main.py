@@ -22,10 +22,10 @@ def numerically_compute_probability_vec(
     step = 0
     stds = []
 
-    while not np.abs(np.std(p @ P) - np.std(p)) < eps and step <= steps:
+    while not np.linalg.norm(p @ P - p) < eps and step <= steps:
         step += 1
         if calculate_std:
-            stds.append(np.abs(np.std(p @ P) - np.std(p)))
+            stds.append(np.linalg.norm(p @ P - p))
 
         p = p @ P
 
@@ -43,10 +43,10 @@ if __name__ == "__main__":
         [0.4, 0.1, 0, 0, 0.2, 0.1, 0.2, 0],
         [0, 0.1, 0.2, 0, 0, 0, 0.7, 0],
         [0, 0, 0, 0.1, 0, 0, 0.4, 0.5],
-        [0.1, 0.2, 0, 0, 0.3, 0.2, 0, 0],
+        [0.1, 0.2, 0, 0, 0.5, 0.2, 0, 0],
         [0, 0.1, 0, 0, 0.1, 0.2, 0.6, 0],
         [0, 0, 0.2, 0.2, 0, 0.3, 0.1, 0.2],
-        [0, 0, 0, 0.2, 0, 0, 0.5, 0.2],
+        [0, 0, 0, 0.2, 0, 0, 0.5, 0.3],
     ])
     p1 = np.array([1., 0, 0, 0, 0, 0, 0, 0])
     p2 = np.array([0, 1., 0, 0, 0, 0, 0, 0])
@@ -67,6 +67,6 @@ if __name__ == "__main__":
     
     plt.xlabel('step')
     plt.ylabel('std')
-    plt.plot(range(0, len(stds1)), stds1)
-    # plt.plot(range(0, len(stds2)), stds2)
-    # plt.show()
+    # plt.plot(range(0, len(stds1)), stds1)
+    plt.plot(range(0, len(stds2)), stds2)
+    plt.show()

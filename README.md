@@ -1,4 +1,4 @@
-# PriMathLabs
+# Applied Mathematics Labs
 
 ## Условия работ
 ### Семестр I
